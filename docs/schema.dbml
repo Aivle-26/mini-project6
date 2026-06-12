@@ -1,0 +1,186 @@
+// =====================================================================
+//  책담 (Chaekdam) ER Diagram (DBML)
+//  dbdiagram.io 에 그대로 붙여넣어 사용하세요.
+//
+//  참고:
+//  - 실제 JPA 엔티티는 FK 제약 없이 Long 컬럼(userId, bookId 등)으로만
+//    연관을 표현합니다. 아래 Ref 들은 "논리적 관계"를 시각화하기 위한 것입니다.
+//  - 컬럼명은 Hibernate 기본 네이밍(카멜 → 스네이크) 기준입니다.
+//  - 타입은 H2 기준의 일반 타입으로 표기했습니다.
+// =====================================================================
+
+Table users {
+  id            bigint       [pk, increment]
+  email         varchar      [not null, unique]
+  password      varchar      [not null]
+  username      varchar      [not null, unique]
+  nickname      varchar      [not null, unique]
+  profile_image text         [note: 'CLOB - base64 또는 URL']
+  bio           varchar(1000)
+  library_public boolean     [default: true, note: 'null이면 공개로 취급']
+
+  Note: '회원 / 사용자 계정'
+}
+
+Table book {
+  id                      bigint   [pk, increment]
+  title                   varchar(200) [not null]
+  author                  varchar(100) [note: '@NotBlank 검증']
+  description             varchar(5000)
+  isbn                    varchar(100)
+  genre                   varchar
+  poster                  text     [note: 'CLOB - base64 또는 URL']
+  publisher               varchar
+  published_date          varchar
+  page_count              integer
+  user_id                 bigint   [note: '등록/소유 사용자']
+  reading_status          varchar  [note: 'want | reading | stopped | finished | null']
+  bookshelf_id            bigint   [note: '배정된 책장(없으면 null)']
+  representative_cover_id bigint
+  likes                   integer  [default: 0]
+  is_favorite             boolean  [default: false]
+  created_date            varchar
+  modified_date           varchar
+  deleted_at              datetime [note: '소프트 삭제(휴지통). null이면 정상']
+
+  Note: '도서'
+}
+
+Table book_moods {
+  book_id bigint  [note: 'book.id (ElementCollection)']
+  mood    varchar [note: '분위기 태그 (다중)']
+
+  Note: '도서별 분위기 태그 (1:N 컬렉션 테이블)'
+}
+
+Table bookshelf {
+  id         bigint   [pk, increment]
+  user_id    bigint
+  name       varchar(200) [not null]
+  created_at datetime
+  deleted_at datetime [note: '소프트 삭제. null이면 정상']
+
+  Note: '사용자 책장(커스텀 컬렉션)'
+}
+
+Table review {
+  id         bigint  [pk, increment]
+  book_id    bigint
+  user_id    bigint
+  writer     varchar [note: '작성자 표시명']
+  content    text
+  rating     integer [note: '별점 1~5']
+  created_at varchar [note: '프론트에서 전달한 문자열']
+
+  Note: '도서 리뷰'
+}
+
+Table highlight {
+  id         bigint  [pk, increment]
+  book_id    bigint
+  user_id    bigint
+  quote      text    [note: '인상 깊은 문장']
+  note       text    [note: '메모']
+  page       varchar [note: '쪽수']
+  is_spoiler boolean [default: false]
+  created_at datetime
+
+  Note: '하이라이트(인상 깊은 문장)'
+}
+
+Table book_like {
+  id           bigint   [pk, increment]
+  user_id      bigint   [not null]
+  book_id      bigint   [not null]
+  created_date datetime
+
+  indexes {
+    (user_id, book_id) [unique]
+  }
+  Note: '도서 좋아요 (사용자-도서 유니크)'
+}
+
+Table follow {
+  id           bigint   [pk, increment]
+  follower_id  bigint   [not null, note: '팔로우 하는 사람']
+  following_id bigint   [not null, note: '팔로우 당하는 사람']
+  created_date datetime
+
+  indexes {
+    (follower_id, following_id) [unique]
+  }
+  Note: '팔로우 관계 (자기참조 N:M)'
+}
+
+Table feed {
+  id            bigint   [pk, increment]
+  user_id       bigint
+  book_id       bigint
+  action        varchar  [note: 'want | reading | stopped | finished']
+  like_count    integer  [default: 0]
+  comment_count integer  [default: 0]
+  created_at    datetime
+
+  Note: '활동 피드(독서 상태 변경 등)'
+}
+
+Table feed_comment {
+  id         bigint   [pk, increment]
+  feed_id    bigint
+  user_id    bigint
+  username   varchar  [not null]
+  content    varchar  [not null, note: '최대 1000자']
+  created_at datetime
+
+  Note: '피드 댓글'
+}
+
+Table feed_like {
+  id           bigint   [pk, increment]
+  feed_id      bigint
+  user_id      bigint
+  created_date datetime
+
+  indexes {
+    (user_id, feed_id) [unique]
+  }
+  Note: '피드 좋아요 (사용자-피드 유니크)'
+}
+
+// ----------------------- 논리적 관계 -----------------------
+
+// 도서
+Ref: book.user_id > users.id
+Ref: book.bookshelf_id > bookshelf.id
+Ref: book_moods.book_id > book.id
+
+// 책장
+Ref: bookshelf.user_id > users.id
+
+// 리뷰
+Ref: review.book_id > book.id
+Ref: review.user_id > users.id
+
+// 하이라이트
+Ref: highlight.book_id > book.id
+Ref: highlight.user_id > users.id
+
+// 도서 좋아요
+Ref: book_like.user_id > users.id
+Ref: book_like.book_id > book.id
+
+// 팔로우 (자기참조)
+Ref: follow.follower_id > users.id
+Ref: follow.following_id > users.id
+
+// 피드
+Ref: feed.user_id > users.id
+Ref: feed.book_id > book.id
+
+// 피드 댓글
+Ref: feed_comment.feed_id > feed.id
+Ref: feed_comment.user_id > users.id
+
+// 피드 좋아요
+Ref: feed_like.feed_id > feed.id
+Ref: feed_like.user_id > users.id

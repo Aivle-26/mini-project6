@@ -1,0 +1,366 @@
+.book-list {
+  width: 100%;
+}
+
+.book-list .empty-message {
+  text-align: center;
+  color: var(--text-muted);
+  padding: 56px 24px;
+  font-size: 16px;
+  background: var(--bg-sub);
+  border: var(--border-w) solid var(--line-main);
+}
+
+.book-list .books-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 26px;
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.book-list .book-card {
+  display: flex;
+  flex-direction: column;
+  border: var(--border-w) solid var(--line-main);
+  background: var(--bg-sub);
+  transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
+  box-shadow: var(--shadow-soft);
+}
+
+.book-list .book-card:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.12);
+  border-color: var(--accent);
+}
+
+.book-list .book-link {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  padding: 0;
+  text-decoration: none;
+  color: inherit;
+  transition: background 0.2s;
+}
+
+.book-list .book-link:hover {
+  background: var(--bg-sub);
+}
+
+.book-list .book-poster {
+  width: 100%;
+  aspect-ratio: 2 / 3;
+  height: auto;
+  object-fit: cover;
+  background: var(--bg-soft);
+  border-radius: 0 2px 2px 0;
+  box-shadow:
+    3px 0 0 #ede6db,
+    6px 0 0 #e2dbd0,
+    9px 0 0 #d5cec2,
+    12px 0 0 #c8c0b3,
+    15px 0 0 #bbb2a3,
+    17px 5px 20px rgba(0, 0, 0, 0.22),
+    5px 4px 13px rgba(0, 0, 0, 0.12);
+}
+
+.book-list .book-poster-fallback {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 2 / 3;
+  padding: 20px 16px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  overflow: hidden;
+  color: #111111;
+  border-radius: 0 2px 2px 0;
+  box-shadow:
+    3px 0 0 #ede6db,
+    6px 0 0 #e2dbd0,
+    9px 0 0 #d5cec2,
+    12px 0 0 #c8c0b3,
+    15px 0 0 #bbb2a3,
+    17px 5px 20px rgba(0, 0, 0, 0.22),
+    5px 4px 13px rgba(0, 0, 0, 0.12);
+}
+
+.book-list .book-poster-fallback::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 14px;
+  height: 100%;
+  background: linear-gradient(to right, rgba(0, 0, 0, 0.3), transparent);
+  pointer-events: none;
+  z-index: 2;
+}
+
+.book-list .book-poster-fallback::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(125deg, rgba(255, 255, 255, 0.16) 0%, transparent 40%);
+  pointer-events: none;
+  z-index: 2;
+}
+
+.book-list .book-poster-fallback span {
+  font-size: 12px;
+  font-weight: 800;
+  line-height: 1.2;
+  opacity: 0.78;
+}
+
+.book-list .book-poster-fallback strong {
+  font-size: 20px;
+  font-weight: 950;
+  line-height: 1.15;
+  word-break: keep-all;
+}
+
+.book-list .book-info {
+  display: flex;
+  flex-direction: column;
+  padding: 20px;
+  min-height: 210px;
+}
+
+.book-list .book-info h3 {
+  font-size: 21px;
+  color: var(--text-main);
+  margin: 0 0 8px;
+  font-weight: 900;
+  line-height: 1.35;
+}
+
+.book-list .book-meta-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.book-list .book-info .author {
+  font-size: 14px;
+  color: var(--accent);
+  font-weight: 800;
+  margin: 0;
+}
+
+.book-list .genre-badge {
+  display: inline-flex;
+  width: fit-content;
+  padding: 5px 10px;
+  border: var(--border-w) solid var(--line-main);
+  color: var(--text-sub);
+  font-size: 12px;
+  font-weight: 800;
+  background: transparent;
+}
+
+.book-list .book-rating-summary {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 12px;
+  padding: 7px 10px;
+  width: fit-content;
+  border: var(--border-w) solid var(--line-main);
+  color: var(--text-sub);
+  font-size: 13px;
+  font-weight: 800;
+  background: transparent;
+}
+
+.book-list .book-rating-summary span {
+  color: var(--text-main);
+}
+
+.book-list .book-rating-summary small {
+  color: var(--text-muted);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.book-list .book-info .description {
+  font-size: 14px;
+  color: var(--text-muted);
+  line-height: 1.6;
+  margin: 0 0 14px;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.book-list .book-info .date {
+  margin-top: auto;
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.book-list .book-actions {
+  display: flex;
+  gap: 0;
+  border-top: var(--border-w) solid var(--line-main);
+}
+
+.book-list .like-btn,
+.book-list .delete-btn {
+  flex: 1;
+  padding: 12px;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 800;
+  font-family: inherit;
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  transition: background 0.15s, color 0.15s;
+}
+
+.book-list .like-btn {
+  border-right: var(--border-w) solid var(--line-main);
+}
+
+.book-list .like-btn:hover {
+  background: var(--bg-soft);
+  color: var(--accent);
+}
+
+.book-list .delete-btn:hover {
+  background: var(--bg-soft);
+  color: var(--danger);
+}
+
+/* compact 모드 */
+
+.book-list--compact .books-grid {
+  grid-template-columns: repeat(5, 1fr);
+  gap: 16px;
+}
+
+.book-list--compact .book-card--compact {
+  border: var(--border-w) solid var(--line-main);
+  background: var(--bg-sub);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  box-shadow: var(--shadow-soft);
+}
+
+.book-list--compact .book-card--compact:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.1);
+  border-color: var(--accent);
+}
+
+.book-list--compact .book-card--compact .book-link {
+  display: flex;
+  flex-direction: column;
+  text-decoration: none;
+  color: inherit;
+}
+
+.book-list--compact .book-card--compact .book-poster {
+  width: 100%;
+  aspect-ratio: 2 / 3;
+  object-fit: cover;
+  background: var(--bg-soft);
+}
+
+.book-list--compact .book-card--compact .book-poster-fallback {
+  aspect-ratio: 2 / 3;
+  padding: 12px 10px;
+}
+
+.book-list--compact .book-card--compact .book-poster-fallback strong {
+  font-size: 14px;
+}
+
+.book-list--compact .book-card--compact .book-info {
+  padding: 10px 12px 12px;
+  min-height: auto;
+}
+
+.book-list--compact .book-card--compact .book-info h3 {
+  font-size: 13px;
+  font-weight: 850;
+  margin: 0 0 6px;
+  line-height: 1.3;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.book-list--compact .book-card--compact .book-rating-summary {
+  margin: 0;
+  padding: 0;
+  border: none;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--text-muted);
+  background: transparent;
+}
+
+.book-list--compact .book-card--compact .book-rating-summary span {
+  color: var(--text-main);
+  font-size: 12px;
+}
+
+.book-list--compact .book-card--compact .book-rating-summary small {
+  font-size: 11px;
+}
+
+@media (max-width: 1100px) {
+  .book-list--compact .books-grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+@media (max-width: 760px) {
+  .book-list--compact .books-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+/* 반응형 */
+
+@media (max-width: 1024px) {
+  .book-list .books-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 640px) {
+  .book-list .books-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .book-list .book-info {
+    min-height: auto;
+  }
+
+  .book-list .book-info h3 {
+    font-size: 18px;
+  }
+
+  .book-list .book-info .author,
+  .book-list .book-info .description {
+    font-size: 13px;
+  }
+
+  .book-list .book-actions {
+    flex-direction: column;
+  }
+
+  .book-list .like-btn {
+    border-right: none;
+    border-bottom: var(--border-w) solid var(--line-main);
+  }
+}

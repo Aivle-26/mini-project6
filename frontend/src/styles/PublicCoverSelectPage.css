@@ -1,0 +1,135 @@
+.public-cover-page {
+  min-height: calc(100vh - 76px);
+  padding: 52px 24px 110px;
+  background: var(--bg-main);
+  color: var(--text-main);
+}
+
+.public-cover-page * {
+  box-sizing: border-box;
+}
+
+.public-cover-inner {
+  width: min(1120px, 100%);
+  margin: 0 auto;
+}
+
+.public-cover-header {
+  margin-bottom: 42px;
+  padding-bottom: 34px;
+  border-bottom: var(--border-w) solid var(--line-main);
+}
+
+.public-cover-header button {
+  margin-bottom: 28px;
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: var(--text-sub);
+  font-size: 14px;
+  font-weight: 850;
+  font-family: inherit;
+  cursor: pointer;
+}
+
+.public-cover-header button:hover {
+  color: var(--text-main);
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+
+.public-cover-header p {
+  margin: 0 0 14px;
+  color: var(--text-muted);
+  font-size: 13px;
+  font-weight: 850;
+  letter-spacing: 0.12em;
+}
+
+.public-cover-header h1 {
+  width: min(780px, 100%);
+  margin: 0;
+  color: var(--text-main);
+  font-family: Georgia, 'Times New Roman', serif;
+  font-size: clamp(38px, 5.2vw, 62px);
+  font-weight: 500;
+  line-height: 1.08;
+  letter-spacing: -2px;
+  word-break: keep-all;
+}
+
+.public-cover-header span {
+  display: block;
+  width: min(680px, 100%);
+  margin-top: 22px;
+  color: var(--text-sub);
+  font-size: 16px;
+  font-weight: 650;
+  line-height: 1.75;
+  word-break: keep-all;
+}
+
+.public-cover-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  border-top: var(--border-w) solid var(--line-main);
+  border-left: var(--border-w) solid var(--line-main);
+}
+
+.public-cover-card {
+  padding: 28px;
+  border: none;
+  border-right: var(--border-w) solid var(--line-main);
+  border-bottom: var(--border-w) solid var(--line-main);
+  background: transparent;
+  color: var(--text-main);
+  font-family: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.public-cover-card:hover {
+  background: var(--bg-soft);
+}
+
+.public-cover-card img {
+  width: 100%;
+  aspect-ratio: 2 / 3;
+  display: block;
+  object-fit: cover;
+  background: var(--bg-soft);
+}
+
+.public-cover-card div {
+  margin-top: 18px;
+}
+
+.public-cover-card h3 {
+  margin: 0;
+  color: var(--text-main);
+  font-size: 17px;
+  font-weight: 900;
+}
+
+.public-cover-card p {
+  margin: 8px 0 0;
+  color: var(--text-sub);
+  font-size: 14px;
+  font-weight: 750;
+}
+
+@media (max-width: 900px) {
+  .public-cover-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 620px) {
+  .public-cover-page {
+    padding: 38px 18px 80px;
+  }
+
+  .public-cover-grid {
+    grid-template-columns: 1fr;
+  }
+}

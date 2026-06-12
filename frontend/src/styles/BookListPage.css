@@ -1,0 +1,240 @@
+.book-list-page {
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: 42px 20px 80px;
+}
+
+.book-list-page .page-header {
+  position: relative;
+  text-align: center;
+  margin-bottom: 40px;
+  padding: 50px 24px;
+  background: linear-gradient(135deg, #ffffff 0%, #f8f6f1 100%);
+  border-radius: 28px;
+  color: #263238;
+  box-shadow: 0 10px 24px rgba(120, 140, 130, 0.12);
+  overflow: hidden;
+}
+
+.book-list-page .page-header::before {
+  content: "LIBRARY";
+  position: absolute;
+  right: 28px;
+  bottom: -8px;
+  font-size: 64px;
+  font-weight: 900;
+  color: rgba(125, 184, 162, 0.08);
+  letter-spacing: 4px;
+}
+
+.book-list-page .page-header h1 {
+  position: relative;
+  margin: 0 0 10px;
+  font-size: 34px;
+  font-weight: 900;
+  color: #222;
+  letter-spacing: -0.8px;
+}
+
+.book-list-page .page-header p {
+  position: relative;
+  margin: 0;
+  font-size: 16px;
+  color: #666;
+}
+
+.list-control-panel {
+  margin-bottom: 30px;
+  padding: 24px;
+  border-radius: 24px;
+  background: #ffffff;
+  border: 1px solid #edf1ea;
+  box-shadow: 0 10px 24px rgba(120, 140, 130, 0.12);
+}
+
+.search-box {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 18px;
+}
+
+.search-box label,
+.select-box label {
+  margin-bottom: 8px;
+  color: #5f9f88;
+  font-size: 18px;
+  font-weight: 900;
+}
+
+.search-box input,
+.select-box select {
+  width: 100%;
+  padding: 13px 15px;
+  border: 1px solid #edf1ea;
+  border-radius: 14px;
+  background: #fffdf9;
+  color: #333;
+  font-size: 14px;
+  font-family: inherit;
+  transition: all 0.2s ease;
+}
+
+.search-box input:focus,
+.select-box select:focus {
+  outline: none;
+  border-color: #7db8a2;
+  background: #ffffff;
+  box-shadow: 0 0 0 4px rgba(125, 184, 162, 0.14);
+}
+
+.control-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.select-box {
+  display: flex;
+  flex-direction: column;
+}
+
+.sort-control {
+  display: grid;
+  grid-template-columns: 1fr 46px;
+  gap: 10px;
+}
+
+.sort-order-toggle {
+  border: 1px solid #edf1ea;
+  border-radius: 14px;
+  background: #fffdf9;
+  color: #5f9f88;
+  font-size: 20px;
+  font-weight: 900;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.sort-order-toggle:hover {
+  transform: translateY(-2px);
+  border-color: #7db8a2;
+  background: #eef5f2;
+  box-shadow: 0 8px 18px rgba(125, 184, 162, 0.18);
+}
+
+.sort-order-toggle:active {
+  transform: translateY(0);
+}
+
+.genre-filter-box {
+  margin-top: 20px;
+}
+
+.genre-filter-box label {
+  display: block;
+  margin-bottom: 12px;
+  color: #5f9f88;
+  font-size: 18px;
+  font-weight: 900;
+}
+
+.genre-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.genre-tag {
+  padding: 9px 14px;
+  border-radius: 999px;
+  border: 1px solid #edf1ea;
+  background: #fffdf9;
+  color: #666;
+  font-size: 13px;
+  font-weight: 800;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.genre-tag:hover {
+  transform: translateY(-2px);
+  border-color: #7db8a2;
+  background: #eef5f2;
+  color: #5f9f88;
+}
+
+.genre-tag.active {
+  border-color: #7db8a2;
+  background: #7db8a2;
+  color: white;
+  box-shadow: 0 8px 18px rgba(125, 184, 162, 0.25);
+}
+
+.result-summary {
+  margin-top: 18px;
+  padding: 14px 16px;
+  border-radius: 16px;
+  background: #f8f6f1;
+  border: 1px solid #edf1ea;
+  color: #666;
+  font-size: 14px;
+  font-weight: 700;
+  text-align: center;
+}
+
+.result-summary strong {
+  color: #5f9f88;
+  font-size: 16px;
+  font-weight: 900;
+}
+
+.loading,
+.error {
+  text-align: center;
+  padding: 44px 20px;
+  font-size: 16px;
+  color: #777;
+}
+
+.error {
+  color: #dc2626;
+  font-weight: 800;
+}
+
+@media (max-width: 768px) {
+  .book-list-page {
+    padding: 28px 16px 60px;
+  }
+
+  .book-list-page .page-header {
+    padding: 36px 20px;
+    border-radius: 22px;
+  }
+
+  .book-list-page .page-header h1 {
+    font-size: 26px;
+  }
+
+  .book-list-page .page-header p {
+    font-size: 14px;
+  }
+
+  .list-control-panel {
+    padding: 20px;
+    border-radius: 22px;
+  }
+
+  .control-row {
+    grid-template-columns: 1fr;
+  }
+
+  .sort-control {
+    grid-template-columns: 1fr 46px;
+  }
+
+  .search-box label,
+  .select-box label,
+  .genre-filter-box label {
+    font-size: 16px;
+  }
+}

@@ -1,0 +1,22 @@
+body.dark {
+  background: var(--bg-main);
+  color: var(--text-main);
+}
+
+body.dark input,
+body.dark textarea,
+body.dark select,
+body.dark button {
+  font-family: inherit;
+}
+select,
+select option {
+  background: var(--bg-main);
+  color: var(--text-main);
+}
+
+body.dark select,
+body.dark select option {
+  background: #111;
+  color: #f5f5f5;
+}

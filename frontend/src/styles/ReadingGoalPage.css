@@ -1,0 +1,772 @@
+.reading-goal-page {
+  min-height: calc(100vh - 76px);
+  padding: 56px 24px 120px;
+  background: var(--bg-main);
+  color: var(--text-main);
+}
+
+.reading-goal-page * {
+  box-sizing: border-box;
+}
+
+.reading-goal-inner {
+  position: relative;
+  width: min(760px, 100%);
+  margin: 0 auto;
+}
+
+.reading-goal-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  margin-bottom: 32px;
+}
+
+.reading-goal-top h1 {
+  margin: 0;
+  color: var(--text-main);
+  font-family: Georgia, 'Times New Roman', serif;
+  font-size: 24px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+
+.goal-primary-btn,
+.goal-outline-btn,
+.goal-edit-btn,
+.goal-manage-btn,
+.goal-text-btn {
+  font-family: inherit;
+  cursor: pointer;
+}
+
+.goal-primary-btn {
+  min-width: 118px;
+  height: 48px;
+  padding: 0 20px;
+  border: 1px solid var(--text-main);
+  background: var(--text-main);
+  color: var(--bg-main);
+  font-size: 14px;
+}
+
+.goal-primary-btn:hover {
+  background: var(--bg-main);
+  color: var(--text-main);
+}
+
+.goal-outline-btn {
+  height: 42px;
+  padding: 0 16px;
+  border: var(--border-w) solid var(--line-main);
+  background: transparent;
+  color: var(--text-main);
+  font-size: 14px;
+}
+
+.goal-outline-btn:hover {
+  border-color: var(--text-main);
+}
+
+.goal-empty-box {
+  min-height: 312px;
+  border: 1px dashed var(--text-muted);
+  background: var(--bg-main);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  padding: 44px 24px;
+  text-align: center;
+}
+
+.goal-empty-box p {
+  margin: 0 0 34px;
+  color: var(--text-sub);
+  font-size: 15px;
+  line-height: 1.7;
+}
+
+.goal-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.goal-list-item {
+  width: 100%;
+  min-height: 88px;
+  padding: 20px 24px;
+  border: var(--border-w) solid var(--line-main);
+  background: var(--bg-soft);
+  color: var(--text-main);
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  text-align: left;
+  cursor: pointer;
+}
+
+.goal-list-item:hover {
+  border-color: var(--text-main);
+}
+
+.goal-list-circle {
+  width: 44px;
+  height: 44px;
+  border: 1px solid var(--text-muted);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-main);
+  font-size: 16px;
+}
+
+.goal-list-item em {
+  display: block;
+  margin-bottom: 6px;
+  color: var(--text-sub);
+  font-size: 14px;
+  font-style: normal;
+}
+
+.goal-list-item strong {
+  display: block;
+  color: var(--text-main);
+  font-size: 15px;
+  font-weight: 700;
+}
+
+/* 상세 상단: 왼쪽 breadcrumb / 오른쪽 Edit */
+.goal-detail-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 24px;
+  margin-bottom: 64px;
+}
+
+.goal-detail-breadcrumb {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--text-muted);
+  font-size: 14px;
+}
+
+.goal-detail-breadcrumb button {
+  border: none;
+  background: transparent;
+  color: var(--text-sub);
+  font-size: 14px;
+  font-family: inherit;
+  cursor: pointer;
+  padding: 0;
+}
+
+.goal-detail-breadcrumb button:hover {
+  color: var(--text-main);
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+
+.goal-detail-breadcrumb p {
+  margin: 0;
+}
+
+.goal-edit-btn {
+  height: 48px;
+  padding: 0 20px;
+  border: 1px solid var(--text-main);
+  background: var(--bg-main);
+  color: var(--text-main);
+  font-size: 14px;
+  font-family: inherit;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.goal-edit-btn:hover {
+  background: var(--text-main);
+  color: var(--bg-main);
+}
+
+.goal-detail-card {
+  width: min(530px, 100%);
+  margin: 0 auto;
+  border: var(--border-w) solid var(--line-main);
+  background: var(--bg-soft);
+}
+
+.goal-detail-main {
+  min-height: 220px;
+  padding: 36px;
+  display: flex;
+  align-items: center;
+  gap: 34px;
+}
+
+.goal-progress-circle {
+  width: 136px;
+  height: 136px;
+  border-radius: 50%;
+  padding: 2px;
+  flex-shrink: 0;
+}
+
+.goal-progress-circle > div {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  background: var(--bg-soft);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+}
+
+.goal-progress-circle strong {
+  color: var(--text-main);
+  font-family: Georgia, 'Times New Roman', serif;
+  font-size: 38px;
+  font-weight: 500;
+  line-height: 1;
+}
+
+.goal-progress-circle span {
+  margin-top: 8px;
+  color: var(--text-sub);
+  font-size: 14px;
+}
+
+.goal-detail-title p {
+  margin: 0 0 10px;
+  color: var(--text-sub);
+  font-size: 14px;
+}
+
+.goal-detail-title h1 {
+  margin: 0;
+  color: var(--text-main);
+  font-family: Georgia, 'Times New Roman', serif;
+  font-size: 23px;
+  font-weight: 600;
+  line-height: 1.25;
+}
+
+.goal-owner {
+  padding: 18px 24px;
+  border-top: var(--border-w) solid var(--line-main);
+  border-bottom: var(--border-w) solid var(--line-main);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.goal-owner-avatar {
+  width: 40px;
+  height: 40px;
+  border: var(--border-w) solid var(--line-main);
+  border-radius: 50%;
+  background: var(--bg-main);
+  color: var(--text-main);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+}
+
+.goal-owner strong {
+  display: block;
+  color: var(--text-main);
+  font-size: 14px;
+}
+
+.goal-owner span {
+  display: block;
+  margin-top: 3px;
+  color: var(--text-sub);
+  font-size: 13px;
+}
+
+.goal-slot-grid {
+  padding: 16px;
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 8px;
+}
+
+.goal-slot {
+  aspect-ratio: 1 / 1.28;
+  border: 1px dashed var(--text-muted);
+  color: var(--text-sub);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  overflow: hidden;
+}
+
+.goal-slot span {
+  color: var(--text-sub);
+}
+
+.goal-slot.has-book {
+  border-style: solid;
+  background: var(--bg-main);
+  padding: 0;
+}
+
+.goal-slot.has-book img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.goal-manage-btn {
+  margin: 0 0 20px 20px;
+  border: none;
+  background: transparent;
+  color: var(--text-sub);
+  font-size: 14px;
+  padding: 0;
+}
+
+.goal-manage-btn:hover {
+  color: var(--text-main);
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+
+/* 공통 모달 */
+.goal-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.68);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  z-index: 50;
+}
+
+.goal-modal {
+  position: relative;
+  width: min(720px, 100%);
+  max-height: calc(100vh - 48px);
+  overflow-y: auto;
+  padding: 52px 56px;
+  border: var(--border-w) solid var(--line-main);
+  background: var(--bg-soft);
+  color: var(--text-main);
+}
+
+.goal-modal h2 {
+  margin: 0;
+  color: var(--text-main);
+  font-family: Georgia, 'Times New Roman', serif;
+  font-size: 30px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+
+.goal-modal-close {
+  position: absolute;
+  top: 18px;
+  right: 20px;
+  width: 34px;
+  height: 34px;
+  border: none;
+  background: transparent;
+  color: var(--text-sub);
+  font-size: 28px;
+  cursor: pointer;
+}
+
+.goal-modal-close:hover {
+  color: var(--text-main);
+}
+
+/* Create goal 모달 */
+.goal-create-layout {
+  margin-top: 56px;
+}
+
+.goal-create-circle {
+  width: 200px;
+  height: 200px;
+  margin: 0 auto;
+  border: 3px solid var(--text-muted);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+}
+
+.goal-create-circle input {
+  width: 86px;
+  border: none;
+  border-left: 1px solid var(--text-main);
+  background: transparent;
+  color: var(--text-main);
+  font-family: Georgia, 'Times New Roman', serif;
+  font-size: 54px;
+  text-align: center;
+  outline: none;
+}
+
+.goal-create-circle span {
+  margin-top: 8px;
+  color: var(--text-main);
+  font-size: 14px;
+  line-height: 1.45;
+  text-align: center;
+  font-weight: 700;
+}
+
+.goal-create-bottom {
+  margin-top: 56px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.goal-text-btn {
+  border: none;
+  background: transparent;
+  color: var(--text-sub);
+  font-size: 14px;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  padding: 0;
+}
+
+.goal-text-btn:hover {
+  color: var(--text-main);
+}
+
+/* Edit goal 모달 */
+.goal-edit-form {
+  margin-top: 32px;
+}
+
+.goal-edit-form label {
+  display: block;
+  margin-bottom: 24px;
+}
+
+.goal-edit-form label span {
+  display: block;
+  margin-bottom: 10px;
+  color: var(--text-sub);
+  font-size: 14px;
+}
+
+.goal-edit-form input {
+  width: 100%;
+  height: 50px;
+  padding: 0 16px;
+  border: 1px solid var(--text-muted);
+  background: transparent;
+  color: var(--text-main);
+  font-size: 15px;
+  font-family: inherit;
+  outline: none;
+}
+
+.goal-edit-form input:focus {
+  border-color: var(--text-main);
+}
+
+.goal-period-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0;
+}
+
+.goal-period-row label:first-child input {
+  border-right: none;
+}
+
+.goal-toggle-row {
+  margin-top: 10px;
+  display: flex;
+  justify-content: space-between;
+  gap: 28px;
+}
+
+.goal-toggle-row strong {
+  display: block;
+  margin-bottom: 8px;
+  color: var(--text-main);
+  font-size: 14px;
+}
+
+.goal-toggle-row p {
+  margin: 0;
+  color: var(--text-sub);
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.goal-toggle {
+  width: 54px;
+  height: 28px;
+  padding: 3px;
+  border: 1px solid var(--text-muted);
+  border-radius: 999px;
+  background: transparent;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.goal-toggle span {
+  width: 20px;
+  height: 20px;
+  display: block;
+  border-radius: 50%;
+  background: var(--text-muted);
+  transition: transform 0.2s ease, background 0.2s ease;
+}
+
+.goal-toggle.is-on span {
+  transform: translateX(24px);
+  background: var(--text-main);
+}
+
+.goal-modal-actions {
+  margin-top: 54px;
+  padding-top: 28px;
+  border-top: var(--border-w) solid var(--line-main);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.goal-delete-btn {
+  border: none;
+  background: transparent;
+  color: var(--text-sub);
+  font-size: 14px;
+  font-family: inherit;
+  cursor: pointer;
+}
+
+.goal-delete-btn:hover {
+  color: var(--text-main);
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+
+/* Manage books 모달 */
+.goal-manage-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 24px;
+}
+
+.goal-manage-header p {
+  margin: 12px 0 0;
+  color: var(--text-sub);
+  font-size: 14px;
+}
+
+.goal-managed-books {
+  margin-top: 28px;
+}
+
+.goal-no-books {
+  min-height: 86px;
+  border: 1px dashed var(--text-muted);
+  color: var(--text-sub);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+}
+
+.goal-managed-book {
+  padding: 12px 0;
+  border-bottom: var(--border-w) solid var(--line-main);
+  display: grid;
+  grid-template-columns: 28px 48px minmax(0, 1fr) auto;
+  gap: 14px;
+  align-items: center;
+}
+
+.goal-managed-book > span {
+  color: var(--text-sub);
+  font-size: 14px;
+}
+
+.goal-managed-book img {
+  width: 48px;
+  height: 66px;
+  object-fit: cover;
+  border: var(--border-w) solid var(--line-main);
+}
+
+.goal-managed-book strong {
+  display: block;
+  color: var(--text-main);
+  font-size: 14px;
+}
+
+.goal-managed-book p {
+  margin: 5px 0 0;
+  color: var(--text-sub);
+  font-size: 13px;
+}
+
+.goal-managed-book button {
+  border: none;
+  background: transparent;
+  color: var(--text-sub);
+  font-size: 13px;
+  font-family: inherit;
+  cursor: pointer;
+}
+
+.goal-managed-book button:hover {
+  color: var(--text-main);
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+
+.goal-book-picker {
+  margin-top: 30px;
+  padding-top: 24px;
+  border-top: var(--border-w) solid var(--line-main);
+}
+
+.goal-book-picker h3 {
+  margin: 0 0 16px;
+  color: var(--text-main);
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.goal-picker-empty {
+  margin: 0;
+  color: var(--text-sub);
+  font-size: 14px;
+}
+
+.goal-book-picker-list {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+}
+
+.goal-book-picker-item {
+  padding: 12px;
+  border: var(--border-w) solid var(--line-main);
+  background: transparent;
+  color: var(--text-main);
+  display: flex;
+  gap: 12px;
+  text-align: left;
+  cursor: pointer;
+}
+
+.goal-book-picker-item:hover {
+  border-color: var(--text-main);
+}
+
+.goal-book-picker-item img {
+  width: 42px;
+  height: 58px;
+  object-fit: cover;
+  border: var(--border-w) solid var(--line-main);
+  flex-shrink: 0;
+}
+
+.goal-book-picker-item strong {
+  display: block;
+  color: var(--text-main);
+  font-size: 14px;
+  line-height: 1.35;
+}
+
+.goal-book-picker-item em {
+  display: block;
+  margin-top: 6px;
+  color: var(--text-sub);
+  font-size: 12px;
+  font-style: normal;
+}
+
+@media (max-width: 720px) {
+  .reading-goal-page {
+    padding: 42px 18px 90px;
+  }
+
+  .reading-goal-top,
+  .goal-detail-header {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .goal-primary-btn,
+  .goal-edit-btn {
+    width: 100%;
+  }
+
+  .goal-detail-main {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .goal-slot-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  .goal-modal {
+    padding: 42px 24px;
+  }
+
+  .goal-create-bottom {
+    align-items: stretch;
+    flex-direction: column;
+    gap: 20px;
+  }
+
+  .goal-period-row {
+    grid-template-columns: 1fr;
+  }
+
+  .goal-period-row label:first-child input {
+    border-right: 1px solid var(--text-muted);
+  }
+
+  .goal-toggle-row {
+    flex-direction: column;
+  }
+
+  .goal-modal-actions {
+    align-items: stretch;
+    flex-direction: column-reverse;
+    gap: 18px;
+  }
+
+  .goal-manage-header {
+    flex-direction: column;
+  }
+
+  .goal-book-picker-list {
+    grid-template-columns: 1fr;
+  }
+
+  .goal-managed-book {
+    grid-template-columns: 24px 44px minmax(0, 1fr);
+  }
+
+  .goal-managed-book button {
+    grid-column: 3;
+    justify-self: flex-start;
+  }
+}
