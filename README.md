@@ -6,6 +6,17 @@
 
 ---
 
+# 👥 역할 분담
+
+| 역할                  | 담당자      | 담당 업무                                                                                     |
+| ------------------- | -------- | ----------------------------------------------------------------------------------------- |
+| 📋 PM               | 성현욱      | - ERD / API 정의서 작성<br>- README.md 작성<br>- 발표 자료 준비<br>- 통합 이슈 추적                          |
+| ⚙️ 백엔드 개발 1         | 김남호      | - Book Entity 작성<br>- BookRepository 구현<br>- H2 콘솔 확인<br>- Lombok 4종 적용                   |
+| 🛠️ 백엔드 개발 2        | 손가영, 이채현 | - BookService 클래스 구현<br>- 비즈니스 로직 작성<br>- BookNotFoundException 처리<br>- @Transactional 처리 |
+| 🔗 백엔드 개발 3         | 이세은, 조영진 | - BookController 구현<br>- 5종 CRUD 엔드포인트 작성<br>- @Valid + @NotBlank 적용<br>- Postman 테스트     |
+| 🚨 통합 / 예외 처리       | 류연우      | - WebConfig (CORS) 설정<br>- GlobalExceptionHandler 구현<br>- 로드맵 디버깅<br>- 트러블슈팅 정리           |
+| 🤖 AI / Frontend 연동 | 박병린      | - Frontend 코드 분석<br>- fetch URL 변경 및 1차 연동<br>- OpenAI 표시 흐름 구현<br>- E2E 시연 준비            |
+
 ## ✨ 주요 기능
 
 | 분류 | 기능 |
@@ -24,13 +35,13 @@
 
 > 아래 자리에 실제 화면 캡처를 추가하세요. (`docs/screenshots/` 폴더에 이미지를 넣고 경로를 연결)
 
-| 홈 / 피드 | 도서 상세 |
-| --- | --- |
-| ![홈 화면](./docs/screenshots/home.png) | ![도서 상세](./docs/screenshots/book-detail.png) |
+| 홈 / 피드 | 도서 상세                                      | 둘러보기 |
+| ---|---|---|
+| ![홈 화면](./docs/screenshots/home.png) | ![도서 상세](docs/screenshots/book-detail.png) | ![둘러보기](./docs/screenshots/discover.png) |
 
-| 내 서재 | AI 표지 생성 |
-| --- | --- |
-| ![내 서재](./docs/screenshots/library.png) | ![AI 표지](./docs/screenshots/ai-cover.png) |
+| 내 서재 | AI 표지 생성 | 도서 추천 |
+| --- | --- | --- |
+| ![내 서재](docs/screenshots/mylibrary.png) | ![AI 표지](./docs/screenshots/ai.png) | ![도서 추천](./docs/screenshots/recommend.png)
 
 <!--
 이미지 추가 방법:
@@ -148,7 +159,3 @@ AI 표지 생성 기능은 **사용자 본인의 OpenAI API 키**를 사용합�
 > 인증은 JWT 없이 로그인 후 클라이언트가 `userId`를 보관하는 방식입니다.
 
 ---
-
-## 📝 라이선스
-
-학습 / 포트폴리오 목적의 프로젝트입니다.
