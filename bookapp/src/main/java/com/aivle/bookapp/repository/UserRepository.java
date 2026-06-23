@@ -13,6 +13,9 @@ public interface UserRepository extends JpaRepository<User, Long> {
 
     Optional<User> findByUsername(String username);
 
+    // ✅ 구글 로그인 시 googleId로 기존 사용자 조회
+    Optional<User> findByGoogleId(String googleId);
+
     boolean existsByEmail(String email);
 
     boolean existsByUsername(String username);

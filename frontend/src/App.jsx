@@ -14,6 +14,7 @@ import Header from './components/Header';
 import LandingPage from './pages/LandingPage';
 import LoginPage from './pages/LoginPage';
 import SignupPage from './pages/SignupPage';
+import OAuthSuccessPage from './pages/OAuthSuccessPage'; // ✅ 구글 로그인 콜백 페이지
 
 import Home from './pages/Home';
 import ExplorePage from './pages/ExplorePage';
@@ -61,6 +62,9 @@ function AppContent() {
         {/* 로그인 / 회원가입 */}
         <Route path="/login" element={<LoginPage />} />
         <Route path="/signup" element={<SignupPage />} />
+
+        {/* ✅ 구글 로그인 성공 후 백엔드가 redirect해주는 페이지 */}
+        <Route path="/oauth-success" element={<OAuthSuccessPage />} />
 
         {/* 메인 페이지 */}
         <Route path="/home" element={<Home />} />
