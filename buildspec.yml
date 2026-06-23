@@ -17,4 +17,6 @@ phases:
 artifacts:
   base-directory: frontend/dist
   files:
-    - '**/*'
+    - 'dist/test-angular-projet/**/*'
+    - appspec.yml
+    - 'deploy-scripts/**/*'
