@@ -24,8 +24,8 @@ phases:
       - if [ -z "$BUILD_DIR" ]; then echo "index.html not found in dist"; exit 1; fi
       - echo "Preparing artifact folder..."
       - rm -rf artifact
-      - mkdir -p artifact
-      - cp -r "$BUILD_DIR"/* artifact/
+      - mkdir -p artifact/frontend
+      - cp -r "$BUILD_DIR"/* artifact/frontend/
       - mkdir -p artifact/bookapp/build/libs
       - cp bookapp/build/libs/*.jar artifact/bookapp/build/libs/
       - cp appspec.yml artifact/
