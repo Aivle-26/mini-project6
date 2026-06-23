@@ -3,6 +3,7 @@ version: 0.2
 phases:
   install:
     runtime-versions:
+      java: corretto17
       nodejs: 20
     commands:
       - echo "Installing dependencies..."
@@ -12,6 +13,11 @@ phases:
     commands:
       - echo "Building frontend project..."
       - npm run build --prefix frontend
+      - echo "Building backend project..."
+      - cd bookapp
+      - chmod +x gradlew
+      - ./gradlew clean build -x test
+      - cd ..
       - echo "Finding frontend build folder..."
       - BUILD_DIR=$(find frontend/dist -type f -name "index.html" -exec dirname {} \; | head -n 1)
       - echo "BUILD_DIR=$BUILD_DIR"
@@ -20,6 +26,8 @@ phases:
       - rm -rf artifact
       - mkdir -p artifact
       - cp -r "$BUILD_DIR"/* artifact/
+      - mkdir -p artifact/bookapp/build/libs
+      - cp bookapp/build/libs/*.jar artifact/bookapp/build/libs/
       - cp appspec.yml artifact/
       - if [ -d scripts ]; then cp -r scripts artifact/; fi
       - echo "Final artifact files:"
