@@ -1,19 +1,13 @@
 version: 0.0
 os: linux
+
 files:
-  - source: frontend/dist
-    destination: /var/www/my-angular-project
-permissions:
-  - object: /var/www/my-angular-project
-    pattern: '**'
-    mode: '0755'
-    owner: root
-    group: root
-    type:
-      - file
-      - directory
+  - source: /
+    destination: /usr/share/nginx/html
+    overwrite: yes
+
 hooks:
-  ApplicationStart:
-    - location: deploy-scripts/application-start-hook.sh
-      timeout: 300
-      
+  AfterInstall:
+    - location: scripts/restart_nginx.sh
+      timeout: 60
+      runas: root

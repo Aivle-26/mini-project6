@@ -4,18 +4,29 @@ phases:
   install:
     runtime-versions:
       nodejs: 20
-
-  pre_build:
     commands:
-      - cd frontend
-      - npm ci
+      - echo "Installing dependencies..."
+      - npm install --prefix frontend
 
   build:
     commands:
-      - npm run build
+      - echo "Building frontend project..."
+      - npm run build --prefix frontend
+      - echo "Finding frontend build folder..."
+      - BUILD_DIR=$(find frontend/dist -type f -name "index.html" -exec dirname {} \; | head -n 1)
+      - echo "BUILD_DIR=$BUILD_DIR"
+      - if [ -z "$BUILD_DIR" ]; then echo "index.html not found in dist"; exit 1; fi
+      - echo "Preparing artifact folder..."
+      - rm -rf artifact
+      - mkdir -p artifact
+      - cp -r "$BUILD_DIR"/* artifact/
+      - cp appspec.yml artifact/
+      - if [ -d scripts ]; then cp -r scripts artifact/; fi
+      - echo "Final artifact files:"
+      - ls -al artifact
+      - find artifact -maxdepth 3 -type f | head -100
 
 artifacts:
   files:
-    - 'frontend/dist/**/*'
-    - 'appspec.yml'
-    - 'deploy-scripts/**/*'
+    - '**/*'
+  base-directory: artifact
