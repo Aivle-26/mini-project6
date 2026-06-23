@@ -1,10 +1,10 @@
 version: 0.0
 os: linux
+file_exists_behavior: OVERWRITE
 
 files:
   - source: /
     destination: /usr/share/nginx/html
-    overwrite: yes
 
 hooks:
   AfterInstall:
