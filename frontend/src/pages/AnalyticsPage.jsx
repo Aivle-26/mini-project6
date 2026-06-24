@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { getReadingReport } from '../api/analyticsApi';
+import { getAiReadingReport, getReadingReport } from '../api/analyticsApi';
 import '../styles/AnalyticsPage.css';
 
 const emptyReport = {
@@ -72,6 +72,10 @@ function AnalyticsPage() {
   const [report, setReport] = useState(emptyReport);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [apiKey, setApiKey] = useState(() => localStorage.getItem('openaiApiKey') || '');
+  const [showApiKey, setShowApiKey] = useState(false);
+  const [aiLoading, setAiLoading] = useState(false);
+  const [aiMessage, setAiMessage] = useState('');
 
   useEffect(() => {
     if (!user?.id) return;
@@ -82,6 +86,32 @@ function AnalyticsPage() {
       .catch((err) => setError(err.message || 'AI 독서 리포트를 불러오지 못했습니다.'))
       .finally(() => setLoading(false));
   }, [user]);
+
+  const handleApiKeyChange = (value) => {
+    setApiKey(value);
+    localStorage.setItem('openaiApiKey', value);
+  };
+
+  const handleAiEnhance = async () => {
+    if (!user?.id) return;
+    if (!apiKey.trim()) {
+      setAiMessage('OpenAI API 키를 입력해주세요.');
+      return;
+    }
+
+    setAiLoading(true);
+    setAiMessage('');
+
+    try {
+      const data = await getAiReadingReport(user.id, apiKey.trim());
+      setReport({ ...emptyReport, ...data });
+      setAiMessage('LLM 인사이트가 적용되었습니다.');
+    } catch (err) {
+      setAiMessage(err.message || 'LLM 인사이트 생성에 실패했습니다. 기본 리포트를 유지합니다.');
+    } finally {
+      setAiLoading(false);
+    }
+  };
 
   const radarPoints = useMemo(() => {
     if (!report.scores.length) return '';
@@ -126,9 +156,31 @@ function AnalyticsPage() {
 
         {!loading && !error && (
           <>
+            <section className="analytics-ai-box">
+              <div>
+                <strong>LLM 인사이트 강화</strong>
+                <p>OpenAI API 키를 입력하면 기존 분석 결과를 바탕으로 더 자연스러운 독서 타입과 인사이트를 생성합니다.</p>
+              </div>
+              <div className="analytics-ai-controls">
+                <input
+                  type={showApiKey ? 'text' : 'password'}
+                  value={apiKey}
+                  onChange={(e) => handleApiKeyChange(e.target.value)}
+                  placeholder="sk-..."
+                />
+                <button type="button" onClick={() => setShowApiKey((prev) => !prev)}>
+                  {showApiKey ? '숨기기' : '보기'}
+                </button>
+                <button type="button" onClick={handleAiEnhance} disabled={aiLoading}>
+                  {aiLoading ? '생성 중...' : 'LLM으로 분석 강화'}
+                </button>
+              </div>
+              {aiMessage && <p className="analytics-ai-message">{aiMessage}</p>}
+            </section>
+
             <section className="analytics-summary">
               <div className="analytics-type-card">
-                <span>Reader Type</span>
+                <span>{report.analysisStatus === 'AI_ENHANCED' ? 'LLM Enhanced Type' : 'Reader Type'}</span>
                 <h2>{report.readerType || '분석 대기 중'}</h2>
                 <p>{report.readerTypeDescription || '서재에 책을 추가하면 독서 성향이 계산됩니다.'}</p>
                 <div className="analytics-quality">
@@ -198,7 +250,7 @@ function AnalyticsPage() {
                 emptyText="독서 상태를 설정하면 완독률을 계산할 수 있습니다."
               />
               <section className="analytics-panel">
-                <h2>AI 인사이트</h2>
+                <h2>{report.analysisStatus === 'AI_ENHANCED' ? 'LLM 인사이트' : 'AI 인사이트'}</h2>
                 <div className="analytics-insights">
                   {report.insights.map((insight) => (
                     <p key={insight}>{insight}</p>

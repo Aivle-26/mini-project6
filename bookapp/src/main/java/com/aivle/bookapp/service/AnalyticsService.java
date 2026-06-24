@@ -4,6 +4,7 @@ import com.aivle.bookapp.dto.ReadingReportResponse;
 import com.aivle.bookapp.entity.Book;
 import com.aivle.bookapp.entity.Highlight;
 import com.aivle.bookapp.entity.Review;
+import com.aivle.bookapp.exception.AiReportGenerationException;
 import com.aivle.bookapp.exception.ReportAccessDeniedException;
 import com.aivle.bookapp.exception.UserNotFoundException;
 import com.aivle.bookapp.repository.BookRepository;
@@ -12,8 +13,13 @@ import com.aivle.bookapp.repository.ReviewRepository;
 import com.aivle.bookapp.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.dao.DataAccessException;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.client.RestClientResponseException;
+import org.springframework.web.client.RestTemplate;
 
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -124,6 +130,305 @@ public class AnalyticsService {
                 insights,
                 warnings
         );
+    }
+
+    public ReadingReportResponse getAiReadingReport(Long userId, Long requesterId, String apiKey, String model) {
+        if (!hasText(apiKey)) {
+            throw new IllegalArgumentException("OpenAI API 키를 입력해주세요.");
+        }
+
+        ReadingReportResponse baseReport = getReadingReport(userId, requesterId);
+        String selectedModel = hasText(model) ? model.trim() : "gpt-4o-mini";
+        AiInsight aiInsight = requestAiInsight(baseReport, selectedModel, apiKey.trim());
+
+        List<String> warnings = new ArrayList<>(baseReport.getWarnings());
+        warnings.add("LLM 인사이트가 적용되었습니다. API 응답 실패 시 기본 규칙 기반 리포트를 사용할 수 있습니다.");
+
+        return new ReadingReportResponse(
+                baseReport.getUserId(),
+                fallback(aiInsight.readerType(), baseReport.getReaderType()),
+                fallback(aiInsight.readerTypeDescription(), baseReport.getReaderTypeDescription()),
+                fallback(aiInsight.summary(), baseReport.getSummary()),
+                "AI_ENHANCED",
+                baseReport.getTotalBooks(),
+                baseReport.getFinishedBooks(),
+                baseReport.getReadingBooks(),
+                baseReport.getReviewCount(),
+                baseReport.getHighlightCount(),
+                baseReport.getAverageRating(),
+                baseReport.getCompletionRate(),
+                baseReport.getDataQuality(),
+                baseReport.getScores(),
+                baseReport.getGenreDistribution(),
+                baseReport.getMoodDistribution(),
+                baseReport.getStatusDistribution(),
+                aiInsight.insights().isEmpty() ? baseReport.getInsights() : aiInsight.insights(),
+                warnings
+        );
+    }
+
+    private AiInsight requestAiInsight(ReadingReportResponse report, String model, String apiKey) {
+        RestTemplate restTemplate = new RestTemplate();
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        headers.setBearerAuth(apiKey);
+
+        Map<String, Object> responseFormat = Map.of("type", "json_object");
+        Map<String, Object> body = Map.of(
+                "model", model,
+                "temperature", 0.6,
+                "response_format", responseFormat,
+                "messages", List.of(
+                        Map.of(
+                                "role", "system",
+                                "content", """
+                                        너는 독서 데이터 분석가다. 반드시 한국어 JSON만 반환한다.
+                                        마크다운, 설명문, 코드블록은 절대 쓰지 않는다.
+                                        JSON 스키마:
+                                        {
+                                          "readerType": "짧은 독서 타입명",
+                                          "readerTypeDescription": "한 문장 설명",
+                                          "summary": "2문장 이내의 종합 분석",
+                                          "insights": ["인사이트 1", "인사이트 2", "인사이트 3"]
+                                        }
+                                        """
+                        ),
+                        Map.of(
+                                "role", "user",
+                                "content", buildAiPrompt(report)
+                        )
+                )
+        );
+
+        try {
+            Map<String, Object> response = postChatCompletion(restTemplate, headers, body);
+            return parseAiInsight(response);
+        } catch (RestClientResponseException e) {
+            throw new AiReportGenerationException(parseOpenAiError(e));
+        }
+    }
+
+    private Map<String, Object> postChatCompletion(RestTemplate restTemplate, HttpHeaders headers, Map<String, Object> body) {
+        HttpEntity<Map<String, Object>> entity = new HttpEntity<>(body, headers);
+        @SuppressWarnings("rawtypes")
+        Map response = restTemplate.postForObject(
+                "https://api.openai.com/v1/chat/completions",
+                entity,
+                Map.class
+        );
+
+        if (response == null) {
+            throw new AiReportGenerationException("AI 응답을 받지 못했습니다.");
+        }
+
+        Object choicesObj = response.get("choices");
+        if (!(choicesObj instanceof List<?> choices) || choices.isEmpty()) {
+            throw new AiReportGenerationException("AI 응답 형식이 올바르지 않습니다.");
+        }
+
+        Object firstChoice = choices.get(0);
+        if (!(firstChoice instanceof Map<?, ?> choiceMap)) {
+            throw new AiReportGenerationException("AI 응답 선택지 형식이 올바르지 않습니다.");
+        }
+
+        Object messageObj = choiceMap.get("message");
+        if (!(messageObj instanceof Map<?, ?> messageMap)) {
+            throw new AiReportGenerationException("AI 응답 메시지 형식이 올바르지 않습니다.");
+        }
+
+        Object content = messageMap.get("content");
+        String contentText = content == null ? "" : String.valueOf(content);
+        if (!hasText(contentText)) {
+            throw new AiReportGenerationException("AI 응답이 비어 있습니다.");
+        }
+        return parseSimpleJsonObject(contentText);
+    }
+
+    private String buildAiPrompt(ReadingReportResponse report) {
+        String scores = report.getScores().stream()
+                .map(score -> score.getLabel() + "=" + score.getValue())
+                .collect(Collectors.joining(", "));
+        String genres = report.getGenreDistribution().stream()
+                .map(item -> item.getLabel() + "(" + item.getPercentage() + "%)")
+                .collect(Collectors.joining(", "));
+        String moods = report.getMoodDistribution().stream()
+                .map(item -> item.getLabel() + "(" + item.getPercentage() + "%)")
+                .collect(Collectors.joining(", "));
+        String statuses = report.getStatusDistribution().stream()
+                .map(item -> item.getLabel() + "(" + item.getCount() + "권)")
+                .collect(Collectors.joining(", "));
+
+        return """
+                아래는 한 사용자의 독서 행동 분석 데이터다.
+                기존 타입: %s
+                기존 요약: %s
+                총 책 수: %d
+                완독 책 수: %d
+                읽는 중 책 수: %d
+                완독률: %.1f%%
+                평균 별점: %.1f
+                리뷰 수: %d
+                하이라이트 수: %d
+                데이터 신뢰도: %d%%
+                성향 점수: %s
+                장르 분포: %s
+                분위기 분포: %s
+                독서 상태 분포: %s
+
+                요청:
+                - 사용자를 비난하거나 과장하지 말고 부드럽게 분석한다.
+                - readerType은 8자 이내의 기억하기 쉬운 이름으로 만든다.
+                - summary는 발표/서비스 화면에 바로 보여도 자연스러운 문장으로 작성한다.
+                - insights는 3개만 작성한다.
+                - 반드시 JSON만 반환한다.
+                """.formatted(
+                report.getReaderType(),
+                report.getSummary(),
+                report.getTotalBooks(),
+                report.getFinishedBooks(),
+                report.getReadingBooks(),
+                report.getCompletionRate(),
+                report.getAverageRating(),
+                report.getReviewCount(),
+                report.getHighlightCount(),
+                report.getDataQuality(),
+                emptyIfBlank(scores),
+                emptyIfBlank(genres),
+                emptyIfBlank(moods),
+                emptyIfBlank(statuses)
+        );
+    }
+
+    private AiInsight parseAiInsight(Map<String, Object> parsed) {
+        List<String> insights = new ArrayList<>();
+        Object insightsObj = parsed.get("insights");
+        if (insightsObj instanceof List<?> insightList) {
+            for (Object insight : insightList) {
+                if (hasText(String.valueOf(insight))) {
+                    insights.add(String.valueOf(insight));
+                }
+            }
+        }
+        return new AiInsight(
+                stringValue(parsed.get("readerType")),
+                stringValue(parsed.get("readerTypeDescription")),
+                stringValue(parsed.get("summary")),
+                insights.stream().limit(3).collect(Collectors.toList())
+        );
+    }
+
+    private String parseOpenAiError(RestClientResponseException e) {
+        String body = e.getResponseBodyAsString();
+        String message = extractJsonString(body, "message");
+        if (hasText(message)) {
+            return "AI 인사이트 생성 실패: " + message;
+        }
+        return "AI 인사이트 생성 실패: OpenAI API 요청이 실패했습니다. (" + e.getStatusCode() + ")";
+    }
+
+    private Map<String, Object> parseSimpleJsonObject(String json) {
+        Map<String, Object> result = new HashMap<>();
+        result.put("readerType", extractJsonString(json, "readerType"));
+        result.put("readerTypeDescription", extractJsonString(json, "readerTypeDescription"));
+        result.put("summary", extractJsonString(json, "summary"));
+        result.put("insights", extractJsonStringArray(json, "insights"));
+        if (!hasText(stringValue(result.get("summary"))) && ((List<?>) result.get("insights")).isEmpty()) {
+            throw new AiReportGenerationException("AI 응답 JSON을 해석하지 못했습니다.");
+        }
+        return result;
+    }
+
+    private String extractJsonString(String json, String fieldName) {
+        if (!hasText(json)) return "";
+        String key = "\"" + fieldName + "\"";
+        int keyIndex = json.indexOf(key);
+        if (keyIndex < 0) return "";
+        int colonIndex = json.indexOf(':', keyIndex + key.length());
+        if (colonIndex < 0) return "";
+        int firstQuote = json.indexOf('"', colonIndex + 1);
+        if (firstQuote < 0) return "";
+        StringBuilder value = new StringBuilder();
+        boolean escaping = false;
+        for (int i = firstQuote + 1; i < json.length(); i++) {
+            char c = json.charAt(i);
+            if (escaping) {
+                value.append(switch (c) {
+                    case 'n' -> '\n';
+                    case 't' -> '\t';
+                    case 'r' -> '\r';
+                    case '"' -> '"';
+                    case '\\' -> '\\';
+                    default -> c;
+                });
+                escaping = false;
+                continue;
+            }
+            if (c == '\\') {
+                escaping = true;
+                continue;
+            }
+            if (c == '"') {
+                return value.toString();
+            }
+            value.append(c);
+        }
+        return "";
+    }
+
+    private List<String> extractJsonStringArray(String json, String fieldName) {
+        List<String> result = new ArrayList<>();
+        if (!hasText(json)) return result;
+        String key = "\"" + fieldName + "\"";
+        int keyIndex = json.indexOf(key);
+        if (keyIndex < 0) return result;
+        int arrayStart = json.indexOf('[', keyIndex + key.length());
+        if (arrayStart < 0) return result;
+        int arrayEnd = json.indexOf(']', arrayStart + 1);
+        if (arrayEnd < 0) return result;
+        String arrayBody = json.substring(arrayStart + 1, arrayEnd);
+
+        int index = 0;
+        while (index < arrayBody.length()) {
+            int quote = arrayBody.indexOf('"', index);
+            if (quote < 0) break;
+            StringBuilder value = new StringBuilder();
+            boolean escaping = false;
+            int i = quote + 1;
+            for (; i < arrayBody.length(); i++) {
+                char c = arrayBody.charAt(i);
+                if (escaping) {
+                    value.append(c);
+                    escaping = false;
+                    continue;
+                }
+                if (c == '\\') {
+                    escaping = true;
+                    continue;
+                }
+                if (c == '"') {
+                    break;
+                }
+                value.append(c);
+            }
+            if (hasText(value.toString())) {
+                result.add(value.toString());
+            }
+            index = i + 1;
+        }
+        return result;
+    }
+
+    private String stringValue(Object value) {
+        return value == null ? "" : String.valueOf(value);
+    }
+
+    private String fallback(String value, String fallback) {
+        return hasText(value) ? value : fallback;
+    }
+
+    private String emptyIfBlank(String value) {
+        return hasText(value) ? value : "없음";
     }
 
     private List<Review> safeFindReviews(Long userId, List<String> warnings) {
@@ -348,4 +653,13 @@ public class AnalyticsService {
     private double round(double value) {
         return Math.round(value * 10.0) / 10.0;
     }
+
+    private record AiInsight(
+            String readerType,
+            String readerTypeDescription,
+            String summary,
+            List<String> insights
+    ) {
+    }
+
 }

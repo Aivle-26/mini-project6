@@ -69,6 +69,13 @@ public class GlobalExceptionHandler {
                 .body(Map.of("message", e.getMessage()));
     }
 
+    @ExceptionHandler(AiReportGenerationException.class)
+    public ResponseEntity<Map<String, String>> handleAiReportGeneration(AiReportGenerationException e) {
+        return ResponseEntity
+                .status(HttpStatus.BAD_GATEWAY)
+                .body(Map.of("message", e.getMessage()));
+    }
+
     @ExceptionHandler(Exception.class)
     public ResponseEntity<Map<String, String>> handleUnexpected(Exception e) {
         log.error("Unhandled server error", e);
