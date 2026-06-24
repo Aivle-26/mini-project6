@@ -5,36 +5,36 @@ phases:
     runtime-versions:
       java: corretto17
       nodejs: 20
+
+  pre_build:
     commands:
-      - echo "Installing dependencies..."
-      - npm install --prefix frontend
+      - echo "Install frontend dependencies"
+      - cd frontend
+      - npm install
+      - cd ..
 
   build:
     commands:
-      - echo "Building frontend project..."
-      - npm run build --prefix frontend
-      - echo "Building backend project..."
+      - echo "Build frontend"
+      - cd frontend
+      - npm run build
+      - cd ..
+      - echo "Build backend"
       - cd bookapp
       - chmod +x gradlew
       - ./gradlew clean build -x test
       - cd ..
-      - echo "Finding frontend build folder..."
-      - BUILD_DIR=$(find frontend/dist -type f -name "index.html" -exec dirname {} \; | head -n 1)
-      - echo "BUILD_DIR=$BUILD_DIR"
-      - if [ -z "$BUILD_DIR" ]; then echo "index.html not found in dist"; exit 1; fi
-      - echo "Preparing artifact folder..."
-      - rm -rf artifact
-      - mkdir -p artifact/frontend
-      - cp -r "$BUILD_DIR"/* artifact/frontend/
-      - mkdir -p artifact/bookapp/build/libs
-      - cp bookapp/build/libs/*.jar artifact/bookapp/build/libs/
-      - cp appspec.yml artifact/
-      - if [ -d scripts ]; then cp -r scripts artifact/; fi
-      - echo "Final artifact files:"
-      - ls -al artifact
-      - find artifact -maxdepth 5 -type f | head -100
+      - echo "Verify build outputs"
+      - test -f frontend/dist/index.html
+      - ls -al frontend/dist
+      - ls -al bookapp/build/libs
+      - find frontend/dist bookapp/build/libs scripts -maxdepth 3 -type f | head -100
 
 artifacts:
   files:
-    - '**/*'
-  base-directory: artifact
+    - appspec.yml
+    - scripts/**/*
+    - deploy-scripts/**/*
+    - frontend/dist/**/*
+    - bookapp/build/libs/*.jar
+  discard-paths: no

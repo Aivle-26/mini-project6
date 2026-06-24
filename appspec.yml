@@ -3,17 +3,21 @@ os: linux
 file_exists_behavior: OVERWRITE
 
 files:
-  - source: frontend
+  - source: frontend/dist
     destination: /var/www/my-angular-project
   - source: bookapp/build/libs
     destination: /home/ec2-user/app/backend
 
 hooks:
-  AfterInstall:
-    - location: scripts/restart_nginx.sh
-      timeout: 60
-      runas: root
-  ApplicationStart:
-    - location: scripts/start_server.sh
+  BeforeInstall:
+    - location: scripts/before_install.sh
       timeout: 300
       runas: root
+  AfterInstall:
+    - location: scripts/configure_nginx.sh
+      timeout: 300
+      runas: root
+  ApplicationStart:
+    - location: scripts/start_backend.sh
+      timeout: 300
+      runas: ec2-user

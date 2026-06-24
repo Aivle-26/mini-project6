@@ -24,7 +24,7 @@ server {
     index index.html;
 
     location /api/ {
-        proxy_pass http://localhost:8080/;
+        proxy_pass http://localhost:8080/api/;
         proxy_set_header Host \$host;
         proxy_set_header X-Real-IP \$remote_addr;
         proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
@@ -32,12 +32,11 @@ server {
     }
 
     location / {
-        try_files \$uri \$uri/ /index.html;
+        try_files \$uri /index.html;
     }
 }
 EOF
 
-mkdir -p "$APP_ROOT"
 chown -R "$NGINX_USER:$NGINX_USER" "$APP_ROOT" || true
 chmod -R 755 "$APP_ROOT"
 nginx -t
