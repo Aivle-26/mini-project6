@@ -1,6 +1,6 @@
 import { apiFetch } from './apiClient';
 
-const BASE = 'http://localhost:8080/users';
+const BASE = '/api/users';
 
 export const getUserProfile = (username) =>
   apiFetch(`${BASE}/${username}`, { errorMsg: '사용자를 찾을 수 없습니다.' });
@@ -21,7 +21,7 @@ export const deleteUser = (userId) =>
   apiFetch(`${BASE}/${userId}`, { method: 'DELETE', returnJson: false, errorMsg: '회원 탈퇴에 실패했습니다.' });
 
 export async function getUserBooks(userId) {
-  const res = await fetch(`http://localhost:8080/books/user/${userId}`);
+  const res = await fetch(`/api/books/user/${userId}`);
   if (!res.ok) {
     if (res.status === 400) throw new Error('비공개 서재입니다.');
     throw new Error('서재를 불러오지 못했습니다.');

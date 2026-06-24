@@ -55,7 +55,7 @@ function AiCoverGeneratePage() {
     setSelectedPoster('');
 
     try {
-      const res = await fetch('http://localhost:8080/ai/cover', {
+      const res = await fetch('/api/ai/cover', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

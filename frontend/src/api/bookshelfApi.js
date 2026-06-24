@@ -1,7 +1,7 @@
 import { apiFetch } from './apiClient';
 
-const BASE = 'http://localhost:8080/bookshelves';
-const BOOKS_BASE = 'http://localhost:8080/books';
+const BASE = '/api/bookshelves';
+const BOOKS_BASE = '/api/books';
 
 export const getMyBookshelves = (userId) =>
   apiFetch(`${BASE}?userId=${userId}`, { errorMsg: '책장 목록을 불러오지 못했습니다.' });

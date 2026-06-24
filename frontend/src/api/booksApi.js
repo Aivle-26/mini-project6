@@ -1,6 +1,6 @@
 import { apiFetch } from './apiClient';
 
-const API_URL = 'http://localhost:8080/books';
+const API_URL = '/api/books';
 
 export const getBooks = () =>
   apiFetch(API_URL, { errorMsg: '도서 목록을 불러오지 못했습니다.' });
