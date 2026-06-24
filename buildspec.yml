@@ -32,7 +32,7 @@ phases:
       - if [ -d scripts ]; then cp -r scripts artifact/; fi
       - echo "Final artifact files:"
       - ls -al artifact
-      - find artifact -maxdepth 3 -type f | head -100
+      - find artifact -maxdepth 5 -type f | head -100
 
 artifacts:
   files:
