@@ -8,6 +8,8 @@ import java.util.List;
 public interface HighlightRepository extends JpaRepository<Highlight, Long> {
     List<Highlight> findByBookIdOrderByIdDesc(Long bookId);
 
+    List<Highlight> findByUserIdOrderByIdDesc(Long userId);
+
     void deleteByBookId(Long bookId);
 
     void deleteByUserId(Long userId);
