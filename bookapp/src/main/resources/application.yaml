@@ -40,4 +40,4 @@ server:
 app:
   # ✅ 로컬 개발 시 비워두면 자동으로 요청 Host에서 감지
   # 배포 시: FRONTEND_URL=https://your-domain.com 으로 주입
-  frontend-url: ${FRONTEND_URL:}
+  frontend-url: ${FRONTEND_URL:http://ec2-43-201-68-198.ap-northeast-2.compute.amazonaws.com/}
