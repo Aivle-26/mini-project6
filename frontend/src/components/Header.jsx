@@ -7,27 +7,11 @@ function Header({ darkMode, setDarkMode }) {
   const location = useLocation();
   const navigate = useNavigate();
   const { user, logout } = useAuth();
-
-  const [keyword, setKeyword] = useState('');
   const [profileMenuOpen, setProfileMenuOpen] = useState(false);
 
   useEffect(() => {
     setProfileMenuOpen(false);
   }, [location.pathname]);
-
-  const handleSearch = (e) => {
-    e.preventDefault();
-
-    const trimmedKeyword = keyword.trim();
-
-    if (!trimmedKeyword) {
-      navigate('/explore');
-      return;
-    }
-
-    navigate(`/books?keyword=${encodeURIComponent(trimmedKeyword)}`);
-    setKeyword('');
-  };
 
   const handleLogout = () => {
     logout();
@@ -39,21 +23,11 @@ function Header({ darkMode, setDarkMode }) {
 
   return (
     <header className="site-header">
-      <Link to="/" className="site-logo">
+      <Link to="/" className="site-logo" aria-label="책담 홈">
         책담<span>*</span>
       </Link>
 
-      <form className="header-search" onSubmit={handleSearch}>
-        <span className="search-icon">⌕</span>
-        <input
-          type="text"
-          placeholder="책, 작가, 서재, 사용자를 검색하세요..."
-          value={keyword}
-          onChange={(e) => setKeyword(e.target.value)}
-        />
-      </form>
-
-      <nav className="site-nav">
+      <nav className="site-nav" aria-label="주요 메뉴">
         <Link
           to="/"
           className={`site-nav-link ${location.pathname === '/' ? 'active' : ''}`}
@@ -120,12 +94,12 @@ function Header({ darkMode, setDarkMode }) {
               </Link>
 
               <Link to="/trash" className="profile-dropdown-item">
-                <span>◎</span>
+                <span>×</span>
                 휴지통
               </Link>
 
               <Link to="/goals" className="profile-dropdown-item">
-                <span>◌</span>
+                <span>○</span>
                 독서 목표
               </Link>
 
