@@ -37,7 +37,6 @@ public class Book {
     private String genre;
 
     @Lob
-    @Column(columnDefinition = "CLOB")
     private String poster;
 
     private String publisher;
