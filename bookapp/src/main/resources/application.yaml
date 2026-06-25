@@ -27,8 +27,9 @@ spring:
       client:
         registration:
           google:
-            client-id: ${GOOGLE_CLIENT_ID:local-google-client-id}
-            client-secret: ${GOOGLE_CLIENT_SECRET:local-google-client-secret}
+            # ✅ 로컬 개발 시: 여기에 직접 입력하거나 환경변수로 주입
+            client-id: ${GOOGLE_CLIENT_ID:420393833930-a8hamfrn9m9ktjfuhe9m86nb6uifbmji.apps.googleusercontent.com}
+            client-secret: ${GOOGLE_CLIENT_SECRET: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}
             scope:
               - email
               - profile
@@ -37,4 +38,6 @@ server:
   forward-headers-strategy: framework
 
 app:
+  # ✅ 로컬 개발 시 비워두면 자동으로 요청 Host에서 감지
+  # 배포 시: FRONTEND_URL=https://your-domain.com 으로 주입
   frontend-url: ${FRONTEND_URL:}

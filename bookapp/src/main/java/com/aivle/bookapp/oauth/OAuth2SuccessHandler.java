@@ -12,11 +12,6 @@ import org.springframework.stereotype.Component;
 
 import java.io.IOException;
 
-/**
- * Spring Boot 4.x / Spring Security 7.x 호환 버전
- * AuthenticationSuccessHandler 인터페이스 대신
- * SimpleUrlAuthenticationSuccessHandler 상속 방식 사용
- */
 @Component
 public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler {
 
@@ -29,7 +24,6 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
     ) {
         this.userRepository = userRepository;
         this.frontendUrl = frontendUrl;
-        // 기본 redirect URL (onAuthenticationSuccess에서 덮어씀)
         setDefaultTargetUrl("/home");
     }
 
@@ -42,16 +36,13 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
 
         OAuth2User oAuth2User = (OAuth2User) authentication.getPrincipal();
 
-        // 구글에서 받은 사용자 정보
         String googleId = oAuth2User.getAttribute("sub");
         String email    = oAuth2User.getAttribute("email");
         String name     = oAuth2User.getAttribute("name");
         String picture  = oAuth2User.getAttribute("picture");
 
-        // DB에서 googleId로 기존 사용자 조회 → 없으면 자동 회원가입
         User user = userRepository.findByGoogleId(googleId)
                 .orElseGet(() ->
-                        // 같은 이메일로 일반 회원가입한 계정이 있으면 googleId 연동
                         userRepository.findByEmail(email)
                                 .map(existing -> {
                                     existing.setGoogleId(googleId);
@@ -61,7 +52,6 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
                                     return userRepository.save(existing);
                                 })
                                 .orElseGet(() -> {
-                                    // 완전히 새 사용자 → 자동 회원가입
                                     String baseUsername = email.split("@")[0]
                                             .replaceAll("[^a-zA-Z0-9_]", "_");
                                     String username = makeUniqueUsername(baseUsername);
@@ -79,27 +69,29 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
                                 })
                 );
 
-        // 프론트엔드 OAuth 콜백 페이지로 redirect (userId 전달)
+        String base = resolveFrontendUrl(request);
         getRedirectStrategy().sendRedirect(
                 request, response,
-                resolveFrontendUrl(request) + "/oauth-success?userId=" + user.getId()
+                base + "/oauth-success?userId=" + user.getId()
         );
     }
 
     private String resolveFrontendUrl(HttpServletRequest request) {
+        // 1순위: application.yaml의 app.frontend-url (배포 환경)
         if (frontendUrl != null && !frontendUrl.isBlank()) {
             return frontendUrl.replaceAll("/+$", "");
         }
 
+        // 2순위: Reverse proxy 헤더 (Nginx 등 앞에 있을 때)
         String proto = request.getHeader("X-Forwarded-Proto");
-        String host = request.getHeader("X-Forwarded-Host");
-        if (host == null || host.isBlank()) {
-            host = request.getHeader("Host");
+        String host  = request.getHeader("X-Forwarded-Host");
+
+        if (host != null && !host.isBlank() && proto != null && !proto.isBlank()) {
+            return proto + "://" + host;
         }
-        if (proto == null || proto.isBlank()) {
-            proto = request.getScheme();
-        }
-        return proto + "://" + host;
+
+        // 3순위: 로컬 개발 기본값 → 프론트엔드는 항상 5173
+        return "http://localhost:5173";
     }
 
     private String makeUniqueUsername(String base) {
