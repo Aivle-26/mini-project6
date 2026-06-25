@@ -347,10 +347,6 @@ function ReadingGoalPage() {
                   </div>
 
                   <div className="goal-create-bottom">
-                    <button type="button" className="goal-text-btn">
-                      Advanced setup
-                    </button>
-
                     <button
                       type="button"
                       className="goal-primary-btn"

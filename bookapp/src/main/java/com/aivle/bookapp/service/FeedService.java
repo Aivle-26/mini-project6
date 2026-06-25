@@ -81,6 +81,7 @@ public class FeedService {
             return new FeedResponse(
                     feed.getId(), feed.getAction(), feed.getCreatedAt(),
                     feed.getLikeCount(), feed.getCommentCount(),
+                    feedLikeRepository.findByFeedIdAndUserId(feed.getId(), userId).isPresent(),
                     userInfo, bookInfo
             );
         }).toList();

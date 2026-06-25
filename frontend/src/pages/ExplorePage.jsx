@@ -5,6 +5,7 @@ import { getAllReviews } from '../api/reviewsApi';
 import BookList from '../components/BookList';
 import BookCover from '../components/BookCover';
 import { MOODS } from '../constants';
+import { useAuth } from '../context/AuthContext';
 import '../styles/ExplorePage.css';
 
 const heroPositions = [
@@ -16,6 +17,41 @@ const actionCards = [
   { title: '뭘 읽을지 모르겠다면?', description: 'AI가 책을 추천해드려요', icon: '✧', to: '/recommend' },
   { title: '다른 서재가 궁금하다면?', description: '공개 서재 둘러보기', icon: '▥', to: '/public-libraries' },
 ];
+
+const bookIdentity = (book) =>
+  (book.isbn?.trim()
+    ? `isbn:${book.isbn.trim()}`
+    : `book:${book.title || ''}|${book.author || ''}`).toLowerCase();
+
+const getBookScore = (book, ratingMap) => ({
+  rating: ratingMap[book.id]?.avg || 0,
+  reviewCount: ratingMap[book.id]?.count || 0,
+  likes: book.likes || 0,
+  id: Number(book.id) || 0,
+});
+
+const pickBetterBook = (current, candidate, ratingMap) => {
+  if (!current) return candidate;
+
+  const a = getBookScore(current, ratingMap);
+  const b = getBookScore(candidate, ratingMap);
+
+  if (b.rating !== a.rating) return b.rating > a.rating ? candidate : current;
+  if (b.reviewCount !== a.reviewCount) return b.reviewCount > a.reviewCount ? candidate : current;
+  if (b.likes !== a.likes) return b.likes > a.likes ? candidate : current;
+  return b.id > a.id ? candidate : current;
+};
+
+const getUniqueBooks = (bookList, ratingMap) => {
+  const uniqueBooks = new Map();
+
+  bookList.forEach((book) => {
+    const key = bookIdentity(book);
+    uniqueBooks.set(key, pickBetterBook(uniqueBooks.get(key), book, ratingMap));
+  });
+
+  return [...uniqueBooks.values()];
+};
 
 function BookCarousel({ books }) {
   const scrollRef = useRef(null);
@@ -44,6 +80,7 @@ function BookCarousel({ books }) {
 
 function ExplorePage() {
   const [searchParams] = useSearchParams();
+  const { user } = useAuth();
   const keyword = searchParams.get('keyword') || '';
 
   const [allBooks, setAllBooks] = useState([]);
@@ -78,7 +115,7 @@ function ExplorePage() {
 
   const handleDelete = async (id) => {
     try {
-      await moveBookToTrash(id);
+      await moveBookToTrash(id, user?.id);
       setAllBooks((prev) => prev.filter((b) => b.id !== id));
     } catch (e) {
       alert('삭제 중 오류가 발생했습니다.');
@@ -107,8 +144,13 @@ function ExplorePage() {
   };
 
   // 키워드 or 장르 or 분위기 필터 적용
+  const displayBooks = useMemo(
+    () => getUniqueBooks(allBooks, ratingMap),
+    [allBooks, ratingMap]
+  );
+
   const filteredBooks = useMemo(() => {
-    let result = allBooks;
+    let result = displayBooks;
 
     if (keyword) {
       const lower = keyword.toLowerCase();
@@ -146,11 +188,11 @@ function ExplorePage() {
         averageRating: ratingMap[b.id] ? Math.round(ratingMap[b.id].avg * 10) / 10 : 0,
         reviewCount: ratingMap[b.id]?.count || 0,
       }));
-  }, [allBooks, keyword, activeGenre, activeMood, sortType, sortOrder, ratingMap]);
+  }, [displayBooks, keyword, activeGenre, activeMood, sortType, sortOrder, ratingMap]);
 
   // 탐색 섹션용 데이터
   const heroBooks = useMemo(() => {
-    const top5 = [...allBooks]
+    const top5 = [...displayBooks]
       .sort((a, b) => (ratingMap[b.id]?.avg || 0) - (ratingMap[a.id]?.avg || 0))
       .slice(0, 5);
     for (let i = top5.length - 1; i > 0; i--) {
@@ -158,14 +200,14 @@ function ExplorePage() {
       [top5[i], top5[j]] = [top5[j], top5[i]];
     }
     return top5;
-  }, [allBooks, ratingMap]);
-  const trendingBooks = [...allBooks]
+  }, [displayBooks, ratingMap]);
+  const trendingBooks = [...displayBooks]
     .sort((a, b) => (ratingMap[b.id]?.avg || 0) - (ratingMap[a.id]?.avg || 0))
     .slice(0, 20);
-  const recentBooks = [...allBooks]
+  const recentBooks = [...displayBooks]
     .sort((a, b) => Number(b.id) - Number(a.id))
     .slice(0, 20);
-  const genres = [...new Set(allBooks.map((b) => b.genre).filter(Boolean))];
+  const genres = [...new Set(displayBooks.map((b) => b.genre).filter(Boolean))];
 
   // 키워드 or 장르 or 분위기 필터 적용 시 → 목록 뷰
   const isListMode = !!(keyword || activeGenre || activeMood);
@@ -247,7 +289,7 @@ function ExplorePage() {
           {loading ? (
             <p className="explore-loading">불러오는 중...</p>
           ) : (
-            <BookList books={filteredBooks} onDelete={handleDelete} onLike={handleLike} compact />
+            <BookList books={filteredBooks} onDelete={handleDelete} onLike={handleLike} compact currentUserId={user?.id} />
           )}
         </section>
       ) : (
@@ -291,7 +333,7 @@ function ExplorePage() {
                     onClick={() => setActiveGenre(genre)}
                   >
                     {genre}
-                    <span>{allBooks.filter((b) => b.genre === genre).length}권</span>
+                    <span>{displayBooks.filter((b) => b.genre === genre).length}권</span>
                   </button>
                 ))}
               </div>
@@ -302,7 +344,7 @@ function ExplorePage() {
             <h2>분위기별 둘러보기</h2>
             <div className="tag-list mood-list">
               {MOODS.map((mood) => {
-                const count = allBooks.filter(
+                const count = displayBooks.filter(
                   (b) => Array.isArray(b.moods) && b.moods.includes(mood)
                 ).length;
                 return (
@@ -320,7 +362,7 @@ function ExplorePage() {
             </div>
           </section>
 
-          {allBooks.length === 0 && !loading && (
+          {displayBooks.length === 0 && !loading && (
             <section className="explore-block">
               <div className="explore-empty">
                 <p>아직 등록된 도서가 없습니다.</p>

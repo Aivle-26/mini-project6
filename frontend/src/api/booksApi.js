@@ -2,6 +2,9 @@ import { apiFetch } from './apiClient';
 
 const API_URL = 'http://localhost:8080/books';
 
+const requesterQuery = (requesterId) =>
+  requesterId ? `?requesterId=${requesterId}` : '';
+
 export const getBooks = () =>
   apiFetch(API_URL, { errorMsg: '도서 목록을 불러오지 못했습니다.' });
 
@@ -11,14 +14,14 @@ export const getBookById = (id) =>
 export const addBook = (book) =>
   apiFetch(API_URL, { method: 'POST', body: book, errorMsg: '도서 등록에 실패했습니다.', parseBodyFirst: true });
 
-export const updateBook = (id, book) =>
-  apiFetch(`${API_URL}/${id}`, { method: 'PATCH', body: book, errorMsg: '도서 수정에 실패했습니다.' });
+export const updateBook = (id, book, requesterId) =>
+  apiFetch(`${API_URL}/${id}${requesterQuery(requesterId)}`, { method: 'PATCH', body: book, errorMsg: '도서 수정에 실패했습니다.' });
 
-export const replaceBook = (id, book) =>
-  apiFetch(`${API_URL}/${id}`, { method: 'PUT', body: book, errorMsg: '도서 저장에 실패했습니다.' });
+export const replaceBook = (id, book, requesterId) =>
+  apiFetch(`${API_URL}/${id}${requesterQuery(requesterId)}`, { method: 'PUT', body: book, errorMsg: '도서 저장에 실패했습니다.' });
 
-export const moveBookToTrash = (id) =>
-  apiFetch(`${API_URL}/${id}`, { method: 'DELETE', returnJson: false, errorMsg: '도서 삭제에 실패했습니다.' });
+export const moveBookToTrash = (id, requesterId) =>
+  apiFetch(`${API_URL}/${id}${requesterQuery(requesterId)}`, { method: 'DELETE', returnJson: false, errorMsg: '도서 삭제에 실패했습니다.' });
 
 export const getTrashBooks = () =>
   apiFetch(`${API_URL}/trash`, { errorMsg: '휴지통 목록을 불러오지 못했습니다.' });
@@ -47,5 +50,9 @@ export const getRandomBooks = (count = 20) =>
 export const addToLibrary = (bookId, userId) =>
   apiFetch(`${API_URL}/${bookId}/my?userId=${userId}`, { method: 'POST', errorMsg: '내 서재에 추가하지 못했습니다.' });
 
-export const updateReadingStatus = (bookId, readingStatus) =>
-  apiFetch(`${API_URL}/${bookId}/status`, { method: 'PATCH', body: { readingStatus }, errorMsg: '독서 상태 변경에 실패했습니다.' });
+export const updateReadingStatus = (bookId, readingStatus, requesterId) =>
+  apiFetch(`${API_URL}/${bookId}/status${requesterQuery(requesterId)}`, {
+    method: 'PATCH',
+    body: { readingStatus },
+    errorMsg: '독서 상태 변경에 실패했습니다.',
+  });

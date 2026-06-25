@@ -4,12 +4,17 @@ import { useAuth } from '../context/AuthContext';
 import { getMyBooks, updateReadingStatus } from '../api/booksApi';
 import { getMyBookshelves, createBookshelf, deleteBookshelf } from '../api/bookshelfApi';
 import { updateLibraryVisibility } from '../api/usersApi';
+import { getReviewsByUserId, deleteReview } from '../api/reviewsApi';
+import { getHighlightsByUserId, deleteHighlight } from '../api/highlightsApi';
 import '../styles/LibraryPage.css';
 import { DEFAULT_POSTER, FALLBACK_COLORS, STATUS_LABELS as statusLabels, STATUS_ICONS as statusIcons } from '../constants';
 
 function LibraryPage() {
   const { user, login } = useAuth();
   const [books, setBooks] = useState([]);
+  const [activeTab, setActiveTab] = useState('books');
+  const [reviews, setReviews] = useState([]);
+  const [highlights, setHighlights] = useState([]);
   const [activeFilter, setActiveFilter] = useState('all');
   const [activeShelfId, setActiveShelfId] = useState(null);
   const [libraryPublic, setLibraryPublic] = useState(
@@ -38,6 +43,12 @@ function LibraryPage() {
       .catch(console.error);
     getMyBookshelves(user.id)
       .then(setBookshelves)
+      .catch(console.error);
+    getReviewsByUserId(user.id)
+      .then((data) => setReviews(Array.isArray(data) ? data : []))
+      .catch(console.error);
+    getHighlightsByUserId(user.id)
+      .then((data) => setHighlights(Array.isArray(data) ? data : []))
       .catch(console.error);
   }, [user]);
 
@@ -88,7 +99,7 @@ function LibraryPage() {
     const isSame = target?.status === nextStatus;
     const finalStatus = isSame ? null : nextStatus;
     try {
-      await updateReadingStatus(bookId, finalStatus);
+      await updateReadingStatus(bookId, finalStatus, user?.id);
     } catch (e) {
       console.error('상태 변경 실패:', e);
     }
@@ -154,15 +165,33 @@ function LibraryPage() {
     }
   };
 
+  const handleDeleteReview = async (reviewId) => {
+    if (!window.confirm('리뷰를 삭제하시겠습니까?')) return;
+    try {
+      await deleteReview(reviewId, user?.id);
+      setReviews((prev) => prev.filter((review) => review.id !== reviewId));
+    } catch (e) {
+      alert(e.message || '리뷰 삭제에 실패했습니다.');
+    }
+  };
+
+  const handleDeleteHighlight = async (highlightId) => {
+    if (!window.confirm('하이라이트를 삭제하시겠습니까?')) return;
+    try {
+      await deleteHighlight(highlightId, user?.id);
+      setHighlights((prev) => prev.filter((highlight) => highlight.id !== highlightId));
+    } catch (e) {
+      alert(e.message || '하이라이트 삭제에 실패했습니다.');
+    }
+  };
+
   return (
     <main className="library-page">
       <div className="library-inner">
         <nav className="library-top-tabs">
-          <button type="button" className="active">
-            책
-          </button>
-          <button type="button">리뷰</button>
-          <button type="button">하이라이트</button>
+          <button type="button" className={activeTab === 'books' ? 'active' : ''} onClick={() => setActiveTab('books')}>책</button>
+          <button type="button" className={activeTab === 'reviews' ? 'active' : ''} onClick={() => setActiveTab('reviews')}>리뷰</button>
+          <button type="button" className={activeTab === 'highlights' ? 'active' : ''} onClick={() => setActiveTab('highlights')}>하이라이트</button>
         </nav>
 
         <div className="library-content">
@@ -311,6 +340,7 @@ function LibraryPage() {
               </div>
             )}
 
+            {activeTab === 'books' ? (
             <div className="library-book-list">
               {filteredBooks.length > 0 ? (
                 filteredBooks.map((book) => (
@@ -416,6 +446,43 @@ function LibraryPage() {
                 </div>
               )}
             </div>
+            ) : activeTab === 'reviews' ? (
+              <div className="library-book-list">
+                {reviews.length > 0 ? reviews.map((review) => (
+                  <div className="library-book-row" key={review.id}>
+                    <Link to={`/books/${review.bookId}`} className="library-book-left">
+                      <div>
+                        <h3>{review.content || '내용 없는 리뷰'}</h3>
+                        <p>별점 {review.rating || 0} · {review.createdAt || '작성일 없음'}</p>
+                      </div>
+                    </Link>
+                    <div className="library-book-actions">
+                      <button type="button" className="book-more-btn" onClick={() => handleDeleteReview(review.id)}>삭제</button>
+                    </div>
+                  </div>
+                )) : (
+                  <div className="library-empty"><p>아직 작성한 리뷰가 없습니다.</p></div>
+                )}
+              </div>
+            ) : (
+              <div className="library-book-list">
+                {highlights.length > 0 ? highlights.map((highlight) => (
+                  <div className="library-book-row" key={highlight.id}>
+                    <Link to={`/books/${highlight.bookId}`} className="library-book-left">
+                      <div>
+                        <h3>{highlight.quote || '내용 없는 하이라이트'}</h3>
+                        <p>{highlight.note || '메모 없음'} {highlight.page ? `· ${highlight.page}쪽` : ''}</p>
+                      </div>
+                    </Link>
+                    <div className="library-book-actions">
+                      <button type="button" className="book-more-btn" onClick={() => handleDeleteHighlight(highlight.id)}>삭제</button>
+                    </div>
+                  </div>
+                )) : (
+                  <div className="library-empty"><p>아직 작성한 하이라이트가 없습니다.</p></div>
+                )}
+              </div>
+            )}
           </section>
         </div>
       </div>

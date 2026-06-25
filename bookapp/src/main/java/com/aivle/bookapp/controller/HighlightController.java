@@ -17,7 +17,16 @@ public class HighlightController {
     private final HighlightService highlightService;
 
     @GetMapping
-    public ResponseEntity<List<Highlight>> getByBookId(@RequestParam Long bookId) {
+    public ResponseEntity<List<Highlight>> getHighlights(
+            @RequestParam(required = false) Long bookId,
+            @RequestParam(required = false) Long userId
+    ) {
+        if (userId != null) {
+            return ResponseEntity.ok(highlightService.getByUserId(userId));
+        }
+        if (bookId == null) {
+            return ResponseEntity.badRequest().build();
+        }
         return ResponseEntity.ok(highlightService.getByBookId(bookId));
     }
 
@@ -27,8 +36,11 @@ public class HighlightController {
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> delete(@PathVariable Long id) {
-        highlightService.delete(id);
+    public ResponseEntity<Void> delete(
+            @PathVariable Long id,
+            @RequestParam(required = false) Long requesterId
+    ) {
+        highlightService.delete(id, requesterId);
         return ResponseEntity.noContent().build();
     }
 }

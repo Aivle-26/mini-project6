@@ -29,7 +29,12 @@ export default function BookDetailSidePanel({
   onDelete,
   onSave,
   onCancelEdit,
+  canManageBook = true,
+  canEditBook = canManageBook,
 }) {
+  const coverIndex = Number(book.id) % FALLBACK_COLORS.length;
+  const selectedShelf = bookshelves.find((shelf) => shelf.id === currentShelfId);
+
   return (
     <aside className="book-side-panel">
       <div className="book-cover-box">
@@ -41,14 +46,14 @@ export default function BookDetailSidePanel({
             onError={(e) => { e.currentTarget.src = DEFAULT_POSTER; }}
           />
         ) : (
-          <div className={`detail-fallback-cover ${FALLBACK_COLORS[Number(book.id) % FALLBACK_COLORS.length]}`}>
+          <div className={`detail-fallback-cover ${FALLBACK_COLORS[coverIndex]}`}>
             <span>{book.author || ''}</span>
             <strong>{book.title}</strong>
           </div>
         )}
       </div>
 
-      {isEditing && (
+      {canEditBook && isEditing && (
         <div className="edit-ai-cover-section">
           <p className="edit-ai-cover-label">AI 표지 생성</p>
 
@@ -60,10 +65,10 @@ export default function BookDetailSidePanel({
                 setAiApiKey(e.target.value);
                 localStorage.setItem('openaiApiKey', e.target.value);
               }}
-              placeholder="OpenAI API 키 (sk-...)"
+              placeholder="OpenAI API 키(sk-...)"
             />
             <button type="button" onClick={() => setShowAiApiKey((p) => !p)}>
-              {showAiApiKey ? '숨기기' : '보기'}
+              {showAiApiKey ? '숨김' : '보기'}
             </button>
           </div>
 
@@ -81,7 +86,7 @@ export default function BookDetailSidePanel({
               {aiPosters.map((poster, i) => (
                 <button
                   type="button"
-                  key={i}
+                  key={poster}
                   className={`edit-ai-poster-card ${formData.poster === poster ? 'selected' : ''}`}
                   onClick={() => onSelectPoster(poster)}
                 >
@@ -99,83 +104,86 @@ export default function BookDetailSidePanel({
           className="book-status-main-btn"
           onClick={() => setSideMenuOpen((prev) => !prev)}
         >
-          <span>{bookStatus || '독서 상태 선택'}</span>
-          <em>⌄</em>
+          <span>{canManageBook ? (bookStatus || '독서 상태 선택') : '기록 추가'}</span>
+          <em>∨</em>
         </button>
 
         {sideMenuOpen && (
           <div className="book-status-dropdown">
-            {statusOptions.map((status) => (
-              <button
-                type="button"
-                key={status.label}
-                onClick={() => onStatusChange(status.label)}
-              >
-                <span>{status.icon}</span>
-                {status.label}
-                <em>{bookStatus === status.label ? '●' : '○'}</em>
-              </button>
-            ))}
+            {canManageBook && (
+              <>
+                {statusOptions.map((status) => (
+                  <button
+                    type="button"
+                    key={status.label}
+                    onClick={() => onStatusChange(status.label)}
+                  >
+                    <span>{status.icon}</span>
+                    {status.label}
+                    <em>{bookStatus === status.label ? '●' : '○'}</em>
+                  </button>
+                ))}
 
-            <div className="book-status-menu-line" />
+                <div className="book-status-menu-line" />
 
-            <button type="button" onClick={() => setShelfSubMenuOpen((p) => !p)}>
-              <span>＋</span>
-              {currentShelfId && bookshelves.find((s) => s.id === currentShelfId)
-                ? bookshelves.find((s) => s.id === currentShelfId).name
-                : '책장에 추가'}
-              <strong>{shelfSubMenuOpen ? '↑' : '›'}</strong>
-            </button>
+                <button type="button" onClick={() => setShelfSubMenuOpen((p) => !p)}>
+                  <span>▦</span>
+                  {selectedShelf ? selectedShelf.name : '책장에 추가'}
+                  <strong>{shelfSubMenuOpen ? '▲' : '▼'}</strong>
+                </button>
 
-            {shelfSubMenuOpen && (
-              <div className="book-shelf-submenu">
-                {bookshelves.length === 0 ? (
-                  <p className="shelf-submenu-empty">서재에 책장이 없습니다</p>
-                ) : (
-                  bookshelves.map((shelf) => (
-                    <button
-                      key={shelf.id}
-                      type="button"
-                      className={currentShelfId === shelf.id ? 'active' : ''}
-                      onClick={() => { onAssignShelf(shelf.id); setShelfSubMenuOpen(false); }}
-                    >
-                      <span>▤</span>
-                      {shelf.name}
-                      {currentShelfId === shelf.id && <em>●</em>}
-                    </button>
-                  ))
+                {shelfSubMenuOpen && (
+                  <div className="book-shelf-submenu">
+                    {bookshelves.length === 0 ? (
+                      <p className="shelf-submenu-empty">등록된 책장이 없습니다</p>
+                    ) : (
+                      bookshelves.map((shelf) => (
+                        <button
+                          key={shelf.id}
+                          type="button"
+                          className={currentShelfId === shelf.id ? 'active' : ''}
+                          onClick={() => { onAssignShelf(shelf.id); setShelfSubMenuOpen(false); }}
+                        >
+                          <span>▦</span>
+                          {shelf.name}
+                          {currentShelfId === shelf.id && <em>●</em>}
+                        </button>
+                      ))
+                    )}
+                    {currentShelfId !== null && bookshelves.length > 0 && (
+                      <>
+                        <div className="book-status-menu-line" />
+                        <button
+                          type="button"
+                          onClick={() => { onRemoveFromShelf(); setShelfSubMenuOpen(false); }}
+                        >
+                          <span>×</span>
+                          책장에서 제거
+                        </button>
+                      </>
+                    )}
+                  </div>
                 )}
-                {currentShelfId !== null && bookshelves.length > 0 && (
-                  <>
-                    <div className="book-status-menu-line" />
-                    <button
-                      type="button"
-                      onClick={() => { onRemoveFromShelf(); setShelfSubMenuOpen(false); }}
-                    >
-                      <span>×</span>
-                      책장에서 제거
-                    </button>
-                  </>
-                )}
-              </div>
+
+                <div className="book-status-menu-line" />
+              </>
             )}
 
             <button
               type="button"
               onClick={() => { onOpenHighlight(); setSideMenuOpen(false); }}
             >
-              <span>✎</span>
-              인상 깊은 문장 추가
+              <span>“</span>
+              명대사 추가
             </button>
 
             <button
               type="button"
               onClick={() => { onOpenReview(); setSideMenuOpen(false); }}
             >
-              <span>☆</span>
+              <span>✓</span>
               리뷰 작성
             </button>
-
           </div>
         )}
       </div>
@@ -195,23 +203,25 @@ export default function BookDetailSidePanel({
         </div>
         <div>
           <span>장르</span>
-          <strong>{book.genre || '소설'}</strong>
+          <strong>{book.genre || '미등록'}</strong>
         </div>
       </div>
 
-      <div className="actions">
-        {!isEditing ? (
-          <>
-            <button className="edit-btn" onClick={onStartEdit}>정보 수정</button>
-            <button className="delete-btn" onClick={onDelete}>휴지통 이동</button>
-          </>
-        ) : (
-          <>
-            <button className="save-btn" onClick={onSave}>저장하기</button>
-            <button className="cancel-btn" onClick={onCancelEdit}>취소</button>
-          </>
-        )}
-      </div>
+      {canEditBook && (
+        <div className="actions">
+          {!isEditing ? (
+            <>
+              <button className="edit-btn" onClick={onStartEdit}>정보 수정</button>
+              <button className="delete-btn" onClick={onDelete}>휴지통 이동</button>
+            </>
+          ) : (
+            <>
+              <button className="save-btn" onClick={onSave}>저장하기</button>
+              <button className="cancel-btn" onClick={onCancelEdit}>취소</button>
+            </>
+          )}
+        </div>
+      )}
     </aside>
   );
 }

@@ -69,6 +69,13 @@ public class GlobalExceptionHandler {
                 .body(Map.of("message", e.getMessage()));
     }
 
+    @ExceptionHandler(ActionAccessDeniedException.class)
+    public ResponseEntity<Map<String, String>> handleActionAccessDenied(ActionAccessDeniedException e) {
+        return ResponseEntity
+                .status(HttpStatus.FORBIDDEN)
+                .body(Map.of("message", e.getMessage()));
+    }
+
     @ExceptionHandler(AiReportGenerationException.class)
     public ResponseEntity<Map<String, String>> handleAiReportGeneration(AiReportGenerationException e) {
         return ResponseEntity

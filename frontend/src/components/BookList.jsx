@@ -1,7 +1,7 @@
 import BookItem from './BookItem';
 import '../styles/BookList.css';
 
-function BookList({ books = [], onDelete, onLike, compact = false }) {
+function BookList({ books = [], onDelete, onLike, compact = false, currentUserId = null }) {
   return (
     <div className={`book-list${compact ? ' book-list--compact' : ''}`}>
       {books.length === 0 ? (
@@ -22,6 +22,7 @@ function BookList({ books = [], onDelete, onLike, compact = false }) {
               likes={book.likes}
               averageRating={book.averageRating}
               reviewCount={book.reviewCount}
+              canDelete={Boolean(currentUserId && book.userId === currentUserId)}
               onDelete={onDelete}
               onLike={onLike}
               compact={compact}

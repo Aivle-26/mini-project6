@@ -48,6 +48,16 @@ public class Book {
 
     private Long userId;
 
+    private Long originalBookId;
+
+    private Long originalUserId;
+
+    @Transient
+    private Long editableUserId;
+
+    @Transient
+    private Long detailBookId;
+
     private String readingStatus;
 
     private Long bookshelfId;
