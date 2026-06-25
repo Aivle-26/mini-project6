@@ -55,6 +55,15 @@ function Header({ darkMode, setDarkMode }) {
           내 서재
         </Link>
 
+        <Link
+          to="/analytics"
+          className={`site-nav-link ${
+            location.pathname.startsWith('/analytics') ? 'active' : ''
+          }`}
+        >
+          AI 리포트
+        </Link>
+
         <div className="profile-menu-wrap">
           <button
             type="button"
@@ -101,6 +110,11 @@ function Header({ darkMode, setDarkMode }) {
               <Link to="/goals" className="profile-dropdown-item">
                 <span>○</span>
                 독서 목표
+              </Link>
+
+              <Link to="/analytics" className="profile-dropdown-item">
+                <span>AI</span>
+                독서 리포트
               </Link>
 
               <div className="profile-dropdown-line" />

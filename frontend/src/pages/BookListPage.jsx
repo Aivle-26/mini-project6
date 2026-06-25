@@ -48,7 +48,7 @@ function BookListPage() {
 
   const handleDelete = async (id) => {
     try {
-      await moveBookToTrash(id);
+      await moveBookToTrash(id, user?.id);
       setBooks((prevBooks) => prevBooks.filter((b) => b.id !== id));
       alert('도서가 휴지통으로 이동되었습니다.');
     } catch (err) {
@@ -174,7 +174,7 @@ function BookListPage() {
         </div>
       </div>
 
-      <BookList books={filteredBooks} onDelete={handleDelete} onLike={handleLike} />
+      <BookList books={filteredBooks} onDelete={handleDelete} onLike={handleLike} currentUserId={user?.id} />
     </div>
   );
 }

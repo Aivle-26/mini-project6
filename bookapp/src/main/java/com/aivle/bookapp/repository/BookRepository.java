@@ -5,6 +5,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface BookRepository extends JpaRepository<Book, Long> {
@@ -17,6 +18,8 @@ public interface BookRepository extends JpaRepository<Book, Long> {
 
     // 특정 사용자의 도서 목록 (휴지통 제외)
     List<Book> findByUserIdAndDeletedAtIsNull(Long userId);
+
+    Optional<Book> findFirstByUserIdAndOriginalBookIdAndDeletedAtIsNullOrderByIdAsc(Long userId, Long originalBookId);
 
     // 특정 사용자의 도서 전체 삭제 (회원 탈퇴 시)
     void deleteByUserId(Long userId);

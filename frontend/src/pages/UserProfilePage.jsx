@@ -3,8 +3,9 @@ import { useState, useEffect } from 'react';
 import '../styles/UserProfilePage.css';
 import { useFollow } from '../context/FollowContext';
 import { useAuth } from '../context/AuthContext';
-import { getUserProfile } from '../api/usersApi';
+import { getUserBooks, getUserProfile } from '../api/usersApi';
 import { getMyBooks } from '../api/booksApi';
+import { getReviewsByUserId } from '../api/reviewsApi';
 import { DEFAULT_POSTER } from '../constants';
 
 function UserProfilePage() {
@@ -15,64 +16,97 @@ function UserProfilePage() {
 
   const [profileUser, setProfileUser] = useState(null);
   const [userBooks, setUserBooks] = useState([]);
+  const [userReviews, setUserReviews] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [pageError, setPageError] = useState('');
+  const [booksError, setBooksError] = useState('');
+  const [reviewsError, setReviewsError] = useState('');
   const [activeTab, setActiveTab] = useState('books');
 
   useEffect(() => {
     if (!username) return;
-    setLoading(true);
-    getUserProfile(username)
-      .then((profile) => {
-        setProfileUser(profile);
-        return getMyBooks(profile.id);
-      })
-      .then((books) => setUserBooks(books))
-      .catch(console.error)
-      .finally(() => setLoading(false));
-  }, [username]);
 
-  if (loading || !profileUser) {
+    const loadProfile = async () => {
+      setLoading(true);
+      setPageError('');
+      setBooksError('');
+      setReviewsError('');
+
+      try {
+        const profile = await getUserProfile(username);
+        const isOwnProfile = currentUser?.id === profile.id || currentUser?.username === username;
+
+        setProfileUser(profile);
+
+        const [booksResult, reviewsResult] = await Promise.allSettled([
+          isOwnProfile ? getMyBooks(profile.id) : getUserBooks(profile.id),
+          getReviewsByUserId(profile.id),
+        ]);
+
+        if (booksResult.status === 'fulfilled') {
+          setUserBooks(Array.isArray(booksResult.value) ? booksResult.value : []);
+        } else {
+          setUserBooks([]);
+          setBooksError(booksResult.reason?.message || '서재를 불러오지 못했습니다.');
+        }
+
+        if (reviewsResult.status === 'fulfilled') {
+          setUserReviews(Array.isArray(reviewsResult.value) ? reviewsResult.value : []);
+        } else {
+          setUserReviews([]);
+          setReviewsError(reviewsResult.reason?.message || '리뷰를 불러오지 못했습니다.');
+        }
+      } catch (error) {
+        setPageError(error.message || '사용자 정보를 불러오지 못했습니다.');
+        setProfileUser(null);
+        setUserBooks([]);
+        setUserReviews([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadProfile();
+  }, [username, currentUser?.id, currentUser?.username]);
+
+  if (loading) {
     return <main className="user-profile-page"><p style={{ padding: '48px' }}>불러오는 중...</p></main>;
   }
 
+  if (pageError || !profileUser) {
+    return <main className="user-profile-page"><p style={{ padding: '48px' }}>{pageError || '사용자를 찾을 수 없습니다.'}</p></main>;
+  }
+
   const following = isFollowing(username);
+  const isOwnProfile = currentUser?.id === profileUser.id || currentUser?.username === username;
 
   const currentlyReading = userBooks.filter((b) => b.readingStatus === 'reading');
   const wantToRead = userBooks.filter((b) => b.readingStatus === 'want');
   const finishedBooks = userBooks.filter((b) => b.readingStatus === 'finished');
+  const bookById = new Map(userBooks.map((book) => [String(book.id), book]));
 
-  const isOwnProfile = currentUser?.username === username;
-
-  const mockReviews = [
-    {
-      id: 'mock-review-1',
-      rating: 5,
-      content: '재밌어요. 몰입력도 높고 4시간이면 완독할 수 있어요 !',
-      createdAt: '2026-06-11',
-      bookInfo: { id: 'mock-book-1', title: '모순', author: '양귀자', poster: DEFAULT_POSTER },
-    },
-    {
-      id: 'mock-review-2',
-      rating: 4,
-      content: '굿굿 \'~\'',
-      createdAt: '2026-06-10',
-      modifiedAt: '2026-06-11',
-      bookInfo: { id: 'mock-book-2', title: '어린 왕자', author: '앙투안 드 생텍쥐페리', poster: DEFAULT_POSTER },
-    },
-  ];
-
-  const fetchedReviews = userBooks.reduce((acc, book) => {
-    if (book.reviews && Array.isArray(book.reviews)) {
-      const bookReviews = book.reviews.map((review) => ({
-        ...review,
-        bookInfo: { id: book.id, title: book.title, author: book.author, poster: book.poster || DEFAULT_POSTER },
-      }));
-      return [...acc, ...bookReviews];
+  const renderBookGrid = (books) => {
+    if (books.length === 0) {
+      return <p className="profile-empty-state">표시할 책이 없습니다.</p>;
     }
-    return acc;
-  }, []);
 
-  const userReviews = fetchedReviews.length > 0 ? fetchedReviews : mockReviews;
+    return (
+      <div className="profile-book-grid">
+        {books.map((book) => (
+          <Link to={`/books/${book.id}`} className="profile-book-card" key={book.id}>
+            <img
+              src={book.poster || DEFAULT_POSTER}
+              alt={book.title}
+              onError={(e) => { e.currentTarget.src = DEFAULT_POSTER; }}
+            />
+
+            <h3>{book.title}</h3>
+            <p>{book.author}</p>
+          </Link>
+        ))}
+      </div>
+    );
+  };
 
   return (
     <main className="user-profile-page">
@@ -93,7 +127,7 @@ function UserProfilePage() {
           <h1>{profileUser.nickname}</h1>
 
           <p>
-            "{profileUser.bio || ''}"
+            "{profileUser.bio || '소개 문구가 아직 없습니다.'}"
           </p>
         </div>
 
@@ -143,35 +177,43 @@ function UserProfilePage() {
         >
           리뷰
         </button>
-        <button type="button" onClick={() => navigate('/goals')}>
-          목표
-        </button>
+        {isOwnProfile && (
+          <button type="button" onClick={() => navigate('/goals')}>
+            목표
+          </button>
+        )}
       </nav>
 
       {activeTab === 'books' ? (
         <>
+          {booksError && <p className="profile-empty-state">{booksError}</p>}
+
           <section className="profile-section">
             <div className="profile-section-title">
               <h2>읽는 중</h2>
               <span>{currentlyReading.length}권</span>
             </div>
 
-            <div className="current-book-box">
-              {currentlyReading.map((book) => (
-                <Link to={`/books/${book.id}`} className="current-book-card" key={book.id}>
-                  <img
-                    src={book.poster || DEFAULT_POSTER}
-                    alt={book.title}
-                    onError={(e) => { e.currentTarget.src = DEFAULT_POSTER; }}
-                  />
+            {currentlyReading.length > 0 ? (
+              <div className="current-book-box">
+                {currentlyReading.map((book) => (
+                  <Link to={`/books/${book.id}`} className="current-book-card" key={book.id}>
+                    <img
+                      src={book.poster || DEFAULT_POSTER}
+                      alt={book.title}
+                      onError={(e) => { e.currentTarget.src = DEFAULT_POSTER; }}
+                    />
 
-                  <div>
-                    <h3>{book.title}</h3>
-                    <p>{book.author}</p>
-                  </div>
-                </Link>
-              ))}
-            </div>
+                    <div>
+                      <h3>{book.title}</h3>
+                      <p>{book.author}</p>
+                    </div>
+                  </Link>
+                ))}
+              </div>
+            ) : (
+              <p className="profile-empty-state">현재 읽고 있는 책이 없습니다.</p>
+            )}
           </section>
 
           <section className="profile-section">
@@ -181,23 +223,10 @@ function UserProfilePage() {
                 <span>{wantToRead.length}권</span>
               </div>
 
-              <Link to="/library">전체 보기</Link>
+              {isOwnProfile && <Link to="/library">전체 보기</Link>}
             </div>
 
-            <div className="profile-book-grid">
-              {wantToRead.map((book) => (
-                <Link to={`/books/${book.id}`} className="profile-book-card" key={book.id}>
-                  <img
-                    src={book.poster || DEFAULT_POSTER}
-                    alt={book.title}
-                    onError={(e) => { e.currentTarget.src = DEFAULT_POSTER; }}
-                  />
-
-                  <h3>{book.title}</h3>
-                  <p>{book.author}</p>
-                </Link>
-              ))}
-            </div>
+            {renderBookGrid(wantToRead)}
           </section>
 
           <section className="profile-section">
@@ -207,23 +236,10 @@ function UserProfilePage() {
                 <span>{finishedBooks.length}권</span>
               </div>
 
-              <Link to="/library">전체 보기</Link>
+              {isOwnProfile && <Link to="/library">전체 보기</Link>}
             </div>
 
-            <div className="profile-book-grid">
-              {finishedBooks.map((book) => (
-                <Link to={`/books/${book.id}`} className="profile-book-card" key={book.id}>
-                  <img
-                    src={book.poster || DEFAULT_POSTER}
-                    alt={book.title}
-                    onError={(e) => { e.currentTarget.src = DEFAULT_POSTER; }}
-                  />
-
-                  <h3>{book.title}</h3>
-                  <p>{book.author}</p>
-                </Link>
-              ))}
-            </div>
+            {renderBookGrid(finishedBooks)}
           </section>
         </>
       ) : (
@@ -233,45 +249,58 @@ function UserProfilePage() {
             <span>{userReviews.length}개</span>
           </div>
 
-          <div className="profile-review-list" style={{ marginTop: '24px', display: 'flex', flexDirection: 'column', gap: '32px' }}>
-            {userReviews.map((review) => (
-              <div key={review.id} className="profile-review-item" style={{ display: 'grid', gridTemplateColumns: '80px 1fr', gap: '24px', paddingBottom: '28px', borderBottom: '1px solid var(--line-main)' }}>
-                <Link to={`/books/${review.bookInfo?.id}`}>
-                  <img
-                    src={review.bookInfo?.poster}
-                    alt={review.bookInfo?.title}
-                    style={{ width: '80px', height: '116px', objectFit: 'cover', background: 'var(--bg-soft)' }}
-                  />
-                </Link>
+          {reviewsError && <p className="profile-empty-state">{reviewsError}</p>}
 
-                <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
-                  <div>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+          {!reviewsError && userReviews.length === 0 && (
+            <p className="profile-empty-state">아직 작성한 리뷰가 없습니다.</p>
+          )}
+
+          {!reviewsError && userReviews.length > 0 && (
+            <div className="profile-review-list">
+              {userReviews.map((review) => {
+                const bookInfo = bookById.get(String(review.bookId));
+                const title = bookInfo?.title || '책 정보 없음';
+                const author = bookInfo?.author || '저자 정보 없음';
+                const poster = bookInfo?.poster || DEFAULT_POSTER;
+
+                return (
+                  <div key={review.id} className="profile-review-item">
+                    <Link to={`/books/${review.bookId}`}>
+                      <img
+                        src={poster}
+                        alt={title}
+                        onError={(e) => { e.currentTarget.src = DEFAULT_POSTER; }}
+                      />
+                    </Link>
+
+                    <div className="profile-review-content">
                       <div>
-                        <Link to={`/books/${review.bookInfo?.id}`} style={{ textDecoration: 'none' }}>
-                          <strong style={{ color: 'var(--text-main)', fontSize: '16px', fontWeight: '900' }}>{review.bookInfo?.title}</strong>
-                        </Link>
-                        <p style={{ margin: '4px 0 0', color: 'var(--text-sub)', fontSize: '13px', fontWeight: '650' }}>{review.bookInfo?.author}</p>
+                        <div className="profile-review-header">
+                          <div>
+                            <Link to={`/books/${review.bookId}`} className="profile-review-title">
+                              {title}
+                            </Link>
+                            <p>{author}</p>
+                          </div>
+
+                          <span>{review.createdAt || '날짜 없음'}</span>
+                        </div>
+
+                        <div className="profile-review-rating">
+                          {'★'.repeat(review.rating || 0)}
+                          <span>{review.rating || 0}점</span>
+                        </div>
+
+                        <p className="profile-review-body">
+                          {review.content}
+                        </p>
                       </div>
-
-                      <span style={{ color: 'var(--text-muted)', fontSize: '12px', fontWeight: '600' }}>
-                        {review.modifiedAt ? `${review.modifiedAt} (수정됨)` : review.createdAt}
-                      </span>
                     </div>
-
-                    <div style={{ margin: '8px 0', fontSize: '14px' }}>
-                      {'⭐'.repeat(review.rating || 0)}
-                      <span style={{ color: 'var(--text-muted)', fontSize: '12px', marginLeft: '4px' }}>{review.rating}점</span>
-                    </div>
-
-                    <p style={{ margin: '8px 0 0', color: 'var(--text-main)', fontSize: '15px', lineHeight: '1.6', fontWeight: '650', whiteSpace: 'pre-wrap' }}>
-                      {review.content}
-                    </p>
                   </div>
-                </div>
-              </div>
-            ))}
-          </div>
+                );
+              })}
+            </div>
+          )}
         </section>
       )}
     </main>

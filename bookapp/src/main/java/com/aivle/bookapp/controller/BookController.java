@@ -43,24 +43,29 @@ public class BookController {
     @PutMapping("/{id}")
     public ResponseEntity<Book> updateBook(
             @PathVariable Long id,
-            @Valid @RequestBody Book bookDetails
+            @Valid @RequestBody Book bookDetails,
+            @RequestParam(required = false) Long requesterId
     ) {
-        return ResponseEntity.ok(bookService.updateBook(id, bookDetails));
+        return ResponseEntity.ok(bookService.updateBook(id, bookDetails, requesterId));
     }
 
     // 도서 부분 수정
     @PatchMapping("/{id}")
     public ResponseEntity<Book> updateBookPartial(
             @PathVariable Long id,
-            @RequestBody Map<String, Object> updates
+            @RequestBody Map<String, Object> updates,
+            @RequestParam(required = false) Long requesterId
     ) {
-        return ResponseEntity.ok(bookService.updateBookPartial(id, updates));
+        return ResponseEntity.ok(bookService.updateBookPartial(id, updates, requesterId));
     }
 
     // 도서 삭제 → 휴지통 이동
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteBook(@PathVariable Long id) {
-        bookService.deleteBook(id);
+    public ResponseEntity<Void> deleteBook(
+            @PathVariable Long id,
+            @RequestParam(required = false) Long requesterId
+    ) {
+        bookService.deleteBook(id, requesterId);
         return ResponseEntity.noContent().build();
     }
 
@@ -94,21 +99,23 @@ public class BookController {
     @PatchMapping("/{id}/status")
     public ResponseEntity<Book> updateReadingStatus(
             @PathVariable Long id,
-            @RequestBody Map<String, Object> body
+            @RequestBody Map<String, Object> body,
+            @RequestParam(required = false) Long requesterId
     ) {
         String status = (String) body.get("readingStatus");
-        return ResponseEntity.ok(bookService.updateReadingStatus(id, status));
+        return ResponseEntity.ok(bookService.updateReadingStatus(id, status, requesterId));
     }
 
     // 책장 배정
     @PatchMapping("/{id}/shelf")
     public ResponseEntity<Book> assignToShelf(
             @PathVariable Long id,
-            @RequestBody Map<String, Object> body
+            @RequestBody Map<String, Object> body,
+            @RequestParam(required = false) Long requesterId
     ) {
         Object val = body.get("bookshelfId");
         Long bookshelfId = val != null ? Long.valueOf(val.toString()) : null;
-        return ResponseEntity.ok(bookService.assignToShelf(id, bookshelfId));
+        return ResponseEntity.ok(bookService.assignToShelf(id, bookshelfId, requesterId));
     }
 
     // AI 표지 저장

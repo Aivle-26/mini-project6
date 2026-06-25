@@ -34,6 +34,7 @@ import RandomBooksPage from './pages/RandomBooksPage';
 import RecommendPage from './pages/RecommendPage';
 import PublicLibrariesPage from './pages/PublicLibrariesPage';
 import UserLibraryPage from './pages/UserLibraryPage';
+import AnalyticsPage from './pages/AnalyticsPage';
 
 function AppContent() {
   const { isLoggedIn } = useAuth();
@@ -92,6 +93,7 @@ function AppContent() {
         {/* 랜덤 / 추천 / 공개서재 */}
         <Route path="/random" element={<RandomBooksPage />} />
         <Route path="/recommend" element={<RecommendPage />} />
+        <Route path="/analytics" element={<AnalyticsPage />} />
         <Route path="/public-libraries" element={<PublicLibrariesPage />} />
         <Route path="/users/:username/library" element={<UserLibraryPage />} />
 

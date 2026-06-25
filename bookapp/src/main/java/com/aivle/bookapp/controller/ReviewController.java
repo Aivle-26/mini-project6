@@ -36,13 +36,20 @@ public class ReviewController {
     }
 
     @PatchMapping("/{id}")
-    public ResponseEntity<Review> updateReview(@PathVariable Long id, @RequestBody Review review) {
-        return ResponseEntity.ok(reviewService.updateReview(id, review));
+    public ResponseEntity<Review> updateReview(
+            @PathVariable Long id,
+            @RequestBody Review review,
+            @RequestParam(required = false) Long requesterId
+    ) {
+        return ResponseEntity.ok(reviewService.updateReview(id, review, requesterId));
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteReview(@PathVariable Long id) {
-        reviewService.deleteReview(id);
+    public ResponseEntity<Void> deleteReview(
+            @PathVariable Long id,
+            @RequestParam(required = false) Long requesterId
+    ) {
+        reviewService.deleteReview(id, requesterId);
         return ResponseEntity.noContent().build();
     }
 }

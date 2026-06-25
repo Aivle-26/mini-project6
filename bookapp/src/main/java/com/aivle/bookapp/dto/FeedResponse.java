@@ -14,6 +14,7 @@ public class FeedResponse {
     private LocalDateTime createdAt;
     private Integer likeCount;
     private Integer commentCount;
+    private Boolean likedByRequester;
     private UserInfo user;
     private BookInfo book;
 

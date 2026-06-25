@@ -6,6 +6,7 @@ import com.aivle.bookapp.entity.Book;
 import com.aivle.bookapp.entity.BookLike;
 import com.aivle.bookapp.entity.Feed;
 import com.aivle.bookapp.entity.User;
+import com.aivle.bookapp.exception.ActionAccessDeniedException;
 import com.aivle.bookapp.exception.BookNotFoundException;
 import com.aivle.bookapp.repository.BookLikeRepository;
 import com.aivle.bookapp.repository.BookRepository;
@@ -41,6 +42,91 @@ public class BookService {
     private final ReviewRepository reviewRepository;
     private final HighlightRepository highlightRepository;
 
+    private void assertBookOwner(Book book, Long requesterId) {
+        if (requesterId != null && !requesterId.equals(book.getUserId())) {
+            throw new ActionAccessDeniedException("본인이 등록한 책만 수정하거나 삭제할 수 있습니다.");
+        }
+    }
+
+    private void assertBookOwnerRequired(Book book, Long requesterId) {
+        if (requesterId == null || !requesterId.equals(resolveEditableUserId(book))) {
+            throw new ActionAccessDeniedException("본인이 등록한 책만 수정하거나 삭제할 수 있습니다.");
+        }
+    }
+
+    private Long resolveEditableUserId(Book book) {
+        return findDisplaySourceBook(book).map(Book::getUserId).orElse(book.getUserId());
+    }
+
+    private Optional<Book> findDisplaySourceBook(Book book) {
+        if (book.getOriginalBookId() != null) {
+            return bookRepository.findById(book.getOriginalBookId());
+        }
+
+        if (book.getOriginalUserId() != null) {
+            return Optional.of(book);
+        }
+
+        return findLikelyOriginalBook(book);
+    }
+
+    private Optional<Book> findLikelyOriginalBook(Book book) {
+        if (book.getUserId() == null || (book.getReadingStatus() == null && book.getBookshelfId() == null)) {
+            return Optional.empty();
+        }
+
+        return bookRepository.findByDeletedAtIsNull().stream()
+                .filter(candidate -> !candidate.getId().equals(book.getId()))
+                .filter(candidate -> candidate.getUserId() != null && !candidate.getUserId().equals(book.getUserId()))
+                .filter(candidate -> sameBookIdentity(candidate, book))
+                .min(Comparator.comparing(Book::getId));
+    }
+
+    private boolean sameBookIdentity(Book a, Book b) {
+        if (hasText(a.getIsbn()) && hasText(b.getIsbn())) {
+            return a.getIsbn().trim().equalsIgnoreCase(b.getIsbn().trim());
+        }
+
+        return normalized(a.getTitle()).equals(normalized(b.getTitle()))
+                && normalized(a.getAuthor()).equals(normalized(b.getAuthor()));
+    }
+
+    private boolean hasText(String value) {
+        return value != null && !value.trim().isEmpty();
+    }
+
+    private String normalized(String value) {
+        return value == null ? "" : value.trim().toLowerCase();
+    }
+
+    private List<String> copyMoods(Book book) {
+        return book.getMoods() == null ? new ArrayList<>() : new ArrayList<>(book.getMoods());
+    }
+
+    private Book attachEditableUser(Book book) {
+        Optional<Book> sourceBook = findDisplaySourceBook(book);
+        Book displayBook = sourceBook.orElse(book);
+
+        book.setEditableUserId(displayBook.getUserId());
+        book.setDetailBookId(displayBook.getId());
+
+        if (!displayBook.getId().equals(book.getId())) {
+            book.setTitle(displayBook.getTitle());
+            book.setAuthor(displayBook.getAuthor());
+            book.setDescription(displayBook.getDescription());
+            book.setIsbn(displayBook.getIsbn());
+            book.setGenre(displayBook.getGenre());
+            book.setPoster(displayBook.getPoster());
+            book.setPublisher(displayBook.getPublisher());
+            book.setPublishedDate(displayBook.getPublishedDate());
+            book.setPageCount(displayBook.getPageCount());
+            book.setMoods(copyMoods(displayBook));
+            book.setLikes(displayBook.getLikes());
+        }
+
+        return book;
+    }
+
     // 1. 전체 도서 조회 (휴지통 제외)
     @Transactional(readOnly = true)
     public List<Book> getAllBooks() {
@@ -50,8 +136,9 @@ public class BookService {
     // 2. 특정 도서 상세 조회
     @Transactional(readOnly = true)
     public Book getBookById(Long id) {
-        return bookRepository.findById(id)
+        Book book = bookRepository.findById(id)
                 .orElseThrow(() -> new BookNotFoundException(id));
+        return attachEditableUser(book);
     }
 
     // 3. 신규 도서 등록
@@ -61,7 +148,12 @@ public class BookService {
 
     // 4. 도서 정보 전체 수정
     public Book updateBook(Long id, Book bookDetails) {
+        return updateBook(id, bookDetails, null);
+    }
+
+    public Book updateBook(Long id, Book bookDetails, Long requesterId) {
         Book book = getBookById(id);
+        assertBookOwnerRequired(book, requesterId);
 
         book.setTitle(bookDetails.getTitle());
         book.setAuthor(bookDetails.getAuthor());
@@ -81,7 +173,12 @@ public class BookService {
 
     // 5. 도서 정보 부분 수정
     public Book updateBookPartial(Long id, Map<String, Object> updates) {
+        return updateBookPartial(id, updates, null);
+    }
+
+    public Book updateBookPartial(Long id, Map<String, Object> updates, Long requesterId) {
         Book book = getBookById(id);
+        assertBookOwnerRequired(book, requesterId);
 
         if (updates.containsKey("title")) {
             book.setTitle((String) updates.get("title"));
@@ -159,8 +256,13 @@ public class BookService {
 
     // 6. 도서 삭제 → 휴지통으로 이동
     public void deleteBook(Long id) {
+        deleteBook(id, null);
+    }
+
+    public void deleteBook(Long id, Long requesterId) {
         Book book = bookRepository.findById(id)
                 .orElseThrow(() -> new BookNotFoundException(id));
+        assertBookOwnerRequired(book, requesterId);
         if (book.getDeletedAt() != null) {
             throw new IllegalArgumentException("이미 휴지통에 있는 책입니다.");
         }
@@ -212,7 +314,13 @@ public class BookService {
 
     // 12. 독서 상태 변경
     public Book updateReadingStatus(Long id, String readingStatus) {
-        Book book = getBookById(id);
+        return updateReadingStatus(id, readingStatus, null);
+    }
+
+    public Book updateReadingStatus(Long id, String readingStatus, Long requesterId) {
+        Book book = bookRepository.findById(id)
+                .orElseThrow(() -> new BookNotFoundException(id));
+        assertBookOwner(book, requesterId);
         book.setReadingStatus(readingStatus);
 
         if (book.getUserId() != null && readingStatus != null && !readingStatus.isBlank()) {
@@ -230,7 +338,13 @@ public class BookService {
 
     // 13. 책장 배정 (null = 해제)
     public Book assignToShelf(Long id, Long bookshelfId) {
-        Book book = getBookById(id);
+        return assignToShelf(id, bookshelfId, null);
+    }
+
+    public Book assignToShelf(Long id, Long bookshelfId, Long requesterId) {
+        Book book = bookRepository.findById(id)
+                .orElseThrow(() -> new BookNotFoundException(id));
+        assertBookOwner(book, requesterId);
         book.setBookshelfId(bookshelfId);
         return book;
     }
@@ -338,8 +452,20 @@ public class BookService {
         Book original = bookRepository.findById(bookId)
                 .orElseThrow(() -> new BookNotFoundException(bookId));
 
+        if (userId != null && userId.equals(original.getUserId())) {
+            return attachEditableUser(original);
+        }
+
+        Long sourceBookId = original.getOriginalBookId() != null ? original.getOriginalBookId() : original.getId();
+        Optional<Book> existingCopy = bookRepository.findFirstByUserIdAndOriginalBookIdAndDeletedAtIsNullOrderByIdAsc(userId, sourceBookId);
+        if (existingCopy.isPresent()) {
+            return attachEditableUser(existingCopy.get());
+        }
+
         Book copy = new Book();
         copy.setUserId(userId);
+        copy.setOriginalBookId(sourceBookId);
+        copy.setOriginalUserId(resolveEditableUserId(original));
         copy.setTitle(original.getTitle());
         copy.setAuthor(original.getAuthor());
         copy.setIsbn(original.getIsbn());
@@ -349,9 +475,10 @@ public class BookService {
         copy.setPublishedDate(original.getPublishedDate());
         copy.setPageCount(original.getPageCount());
         copy.setPoster(original.getPoster());
+        copy.setMoods(copyMoods(original));
         copy.setReadingStatus("want");
 
-        return bookRepository.save(copy);
+        return attachEditableUser(bookRepository.save(copy));
     }
 
     // 15. 책 좋아요 토글
@@ -376,3 +503,4 @@ public class BookService {
         book.setLikes(book.getLikes() + 1);
     }
 }
+

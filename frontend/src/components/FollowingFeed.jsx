@@ -55,7 +55,7 @@ export default function FollowingFeed({ loading: booksLoading }) {
             poster: item.book.poster || DEFAULT_POSTER,
             status: item.action,
           },
-          liked: false,
+          liked: Boolean(item.likedByRequester),
           likesCount: item.likeCount || 0,
           comments: [],
         })));
@@ -156,10 +156,7 @@ export default function FollowingFeed({ loading: booksLoading }) {
                   {feed.book.poster && feed.book.poster !== DEFAULT_POSTER ? (
                     <img src={feed.book.poster} alt={feed.book.title} onError={(e) => { e.currentTarget.style.display = 'none'; }} />
                   ) : (
-                    <div className={`feed-book-fallback-cover ${FALLBACK_COLORS[Number(feed.book.id) % FALLBACK_COLORS.length]}`}>
-                      <span>{feed.book.author || ''}</span>
-                      <strong>{feed.book.title}</strong>
-                    </div>
+                    <div className={`feed-book-fallback-cover ${FALLBACK_COLORS[Number(feed.book.id) % FALLBACK_COLORS.length]}`} aria-label={`${feed.book.title} 표지 없음`} />
                   )}
                 </Link>
                 <div className="feed-book-info">
