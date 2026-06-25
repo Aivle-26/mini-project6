@@ -22,10 +22,12 @@ phases:
       - echo "Build backend"
       - cd bookapp
       - chmod +x gradlew
-      - ./gradlew clean build -x test
+      - ./gradlew clean bootJar -x test
       - cd ..
       - echo "Verify build outputs"
       - test -f frontend/dist/index.html
+      - test -f bookapp/build/libs/bookapp-0.0.1-SNAPSHOT.jar
+      - jar tf bookapp/build/libs/bookapp-0.0.1-SNAPSHOT.jar | grep -i mysql-connector
       - ls -al frontend/dist
       - ls -al bookapp/build/libs
       - find frontend/dist bookapp/build/libs scripts -maxdepth 3 -type f | head -100
@@ -36,5 +38,5 @@ artifacts:
     - scripts/**/*
     - deploy-scripts/**/*
     - frontend/dist/**/*
-    - bookapp/build/libs/*.jar
+    - bookapp/build/libs/bookapp-0.0.1-SNAPSHOT.jar
   discard-paths: no
