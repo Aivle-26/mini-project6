@@ -3,33 +3,32 @@ spring:
     name: bookapp
 
   datasource:
-    url: jdbc:h2:file:./bookapp-data
-    driver-class-name: org.h2.Driver
-    username: sa
-    password:
+    url: ${DB_URL:jdbc:h2:file:./bookapp-data}
+    driver-class-name: ${DB_DRIVER:org.h2.Driver}
+    username: ${DB_USERNAME:sa}
+    password: ${DB_PASSWORD:}
 
   h2:
     console:
-      enabled: true
+      enabled: ${H2_CONSOLE_ENABLED:true}
       path: /h2-console
 
   jpa:
     hibernate:
-      ddl-auto: update
-    database-platform: org.hibernate.dialect.H2Dialect
-    show-sql: true
+      ddl-auto: ${JPA_DDL_AUTO:update}
+    database-platform: ${DB_DIALECT:org.hibernate.dialect.H2Dialect}
+    show-sql: ${JPA_SHOW_SQL:true}
     properties:
       hibernate:
-        format_sql: true
+        format_sql: ${JPA_FORMAT_SQL:true}
 
-  # ✅ Google OAuth2 설정
   security:
     oauth2:
       client:
         registration:
           google:
-            client-id: 420393833930-a8hamfrn9m9ktjfuhe9m86nb6uifbmji.apps.googleusercontent.com
-            client-secret: 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
+            client-id: ${GOOGLE_CLIENT_ID:local-google-client-id}
+            client-secret: ${GOOGLE_CLIENT_SECRET:local-google-client-secret}
             scope:
               - email
               - profile
