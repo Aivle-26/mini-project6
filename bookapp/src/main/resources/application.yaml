@@ -32,3 +32,6 @@ spring:
             scope:
               - email
               - profile
+
+app:
+  frontend-url: ${FRONTEND_URL:}

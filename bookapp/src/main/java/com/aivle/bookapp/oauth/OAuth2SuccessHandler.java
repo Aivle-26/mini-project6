@@ -7,6 +7,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.security.web.authentication.SimpleUrlAuthenticationSuccessHandler;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
@@ -20,12 +21,16 @@ import java.io.IOException;
 public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler {
 
     private final UserRepository userRepository;
-    private static final String FRONTEND_URL = "http://localhost:5173";
+    private final String frontendUrl;
 
-    public OAuth2SuccessHandler(UserRepository userRepository) {
+    public OAuth2SuccessHandler(
+            UserRepository userRepository,
+            @Value("${app.frontend-url:}") String frontendUrl
+    ) {
         this.userRepository = userRepository;
+        this.frontendUrl = frontendUrl;
         // 기본 redirect URL (onAuthenticationSuccess에서 덮어씀)
-        setDefaultTargetUrl(FRONTEND_URL + "/home");
+        setDefaultTargetUrl("/home");
     }
 
     @Override
@@ -77,8 +82,24 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
         // 프론트엔드 OAuth 콜백 페이지로 redirect (userId 전달)
         getRedirectStrategy().sendRedirect(
                 request, response,
-                FRONTEND_URL + "/oauth-success?userId=" + user.getId()
+                resolveFrontendUrl(request) + "/oauth-success?userId=" + user.getId()
         );
+    }
+
+    private String resolveFrontendUrl(HttpServletRequest request) {
+        if (frontendUrl != null && !frontendUrl.isBlank()) {
+            return frontendUrl.replaceAll("/+$", "");
+        }
+
+        String proto = request.getHeader("X-Forwarded-Proto");
+        String host = request.getHeader("X-Forwarded-Host");
+        if (host == null || host.isBlank()) {
+            host = request.getHeader("Host");
+        }
+        if (proto == null || proto.isBlank()) {
+            proto = request.getScheme();
+        }
+        return proto + "://" + host;
     }
 
     private String makeUniqueUsername(String base) {

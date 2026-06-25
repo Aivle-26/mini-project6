@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 
-const API_BASE = 'http://localhost:8080';
+const API_BASE = '/api';
 
 /**
  * 구글 로그인 성공 후 백엔드가 redirect해주는 페이지

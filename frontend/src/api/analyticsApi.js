@@ -1,6 +1,6 @@
 import { apiFetch } from './apiClient';
 
-const BASE = 'http://localhost:8080/analytics';
+const BASE = '/api/analytics';
 
 export const getReadingReport = (userId) =>
   apiFetch(`${BASE}/users/${userId}/reading-report?requesterId=${userId}`, {
