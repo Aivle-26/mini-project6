@@ -27,9 +27,9 @@ spring:
       client:
         registration:
           google:
-            # ✅ 로컬 개발 시: 여기에 직접 입력하거나 환경변수로 주입
-            client-id: ${GOOGLE_CLIENT_ID:420393833930-a8hamfrn9m9ktjfuhe9m86nb6uifbmji.apps.googleusercontent.com}
-            client-secret: ${GOOGLE_CLIENT_SECRET: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}
+            # ✅ 로컬 개발 시: 여기에 직접 입력하거나 환경변수로 주입 #여기 수정함
+            client-id: ${GOOGLE_CLIENT_ID}
+            client-secret: ${GOOGLE_CLIENT_SECRET}
             scope:
               - email
               - profile
