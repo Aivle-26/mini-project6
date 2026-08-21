@@ -1,161 +1,213 @@
-# 📚 책담 (Chaekdam)
+# 🚀 Mini Project 6 — AWS CI/CD & Deployment
 
-> 책 + 이야기(담) — 도서를 기록하고, 추천받고, 다른 사람과 함께 읽는 **소셜 도서 관리 플랫폼**
+> KT AIVLE School 9기 · AI Track · 10반 26조  
+> **AWS 환경에서의 웹 애플리케이션 배포와 CI/CD 파이프라인 구축 실습**
 
-내 서재에 책을 등록하고 독서 상태를 관리하며, AI로 책 표지를 생성하고, 다른 사용자를 팔로우해 독서 활동을 피드로 공유할 수 있는 풀스택 웹 애플리케이션입니다.
+6차 미니프로젝트는 새로운 서비스를 개발하는 프로젝트가 아니라,  
+기존 웹 애플리케이션을 활용하여 **AWS 기반 배포 환경과 CI/CD 흐름을 직접 구성하는 인프라 실습 프로젝트**입니다.
 
----
-
-# 👥 역할 분담
-
-| 역할                  | 담당자      | 담당 업무                                                                                     |
-| ------------------- | -------- | ----------------------------------------------------------------------------------------- |
-| 📋 PM               | 성현욱      | - ERD / API 정의서 작성<br>- README.md 작성<br>- 발표 자료 준비<br>- 통합 이슈 추적                          |
-| ⚙️ 백엔드 개발 1         | 김남효      | - Book Entity 작성<br>- BookRepository 구현<br>- H2 콘솔 확인<br>- Lombok 4종 적용                   |
-| 🛠️ 백엔드 개발 2        | 손가영, 이채현 | - BookService 클래스 구현<br>- 비즈니스 로직 작성<br>- BookNotFoundException 처리<br>- @Transactional 처리 |
-| 🔗 백엔드 개발 3         | 이세은, 조영진 | - BookController 구현<br>- 5종 CRUD 엔드포인트 작성<br>- @Valid + @NotBlank 적용<br>- Postman 테스트     |
-| 🚨 통합 / 예외 처리       | 류연우      | - WebConfig (CORS) 설정<br>- GlobalExceptionHandler 구현<br>- 로드맵 디버깅<br>- 트러블슈팅 정리           |
-| 🤖 AI / Frontend 연동 | 박병린      | - Frontend 코드 분석<br>- fetch URL 변경 및 1차 연동<br>- OpenAI 표시 흐름 구현<br>- E2E 시연 준비            |
-
-## ✨ 주요 기능
-
-| 분류 | 기능 |
-| --- | --- |
-| **도서 관리** | 도서 등록·수정·삭제, 휴지통(소프트 삭제)·복구, 독서 상태(읽고 싶은/읽는 중/중단/완독) 관리 |
-| **서재 & 책장** | 개인 서재, 커스텀 책장 생성/배정, 서재 공개·비공개 설정 |
-| **탐색 & 추천** | 전체 도서 탐색, 분위기 기반 필터, 맞춤 추천(장르·분위기 분석), 랜덤 도서 |
-| **리뷰 & 하이라이트** | 별점·태그 리뷰 작성, 인상 깊은 문장(하이라이트) 기록, 스포일러 표시 |
-| **AI 표지 생성** | OpenAI 이미지 API로 3가지 디자인(시네마틱/미니멀/추상 타이포)의 책 표지 자동 생성 |
-| **소셜** | 사용자 검색, 팔로우/언팔로우, 팔로잉 피드, 피드 좋아요·댓글 |
-| **독서 목표** | 연간 독서 목표 설정, 진행률 추적, 목표에 책 추가 |
+배포 대상 애플리케이션으로 5차 미니프로젝트에서 개발된 **책담(Chaekdam)** 프로젝트를 활용했으며,  
+6차에서는 애플리케이션 기능 개발보다 **빌드 · 배포 자동화 · 서버 구성 · 데이터베이스 전환**에 초점을 맞췄습니다.
 
 ---
 
-## 📸 스크린샷
+## 🎯 Project Goal
 
-> 아래 자리에 실제 화면 캡처를 추가하세요. (`docs/screenshots/` 폴더에 이미지를 넣고 경로를 연결)
+6차 미니프로젝트에서 중점적으로 실습한 내용입니다.
 
-| 홈 / 피드 | 도서 상세                                      | 둘러보기 |
-| ---|---|---|
-| ![홈 화면](./docs/screenshots/home.png) | ![도서 상세](docs/screenshots/book-detail.png) | ![둘러보기](./docs/screenshots/discover.png) |
-
-| 내 서재 | AI 표지 생성 | 도서 추천 |
-| --- | --- | --- |
-| ![내 서재](docs/screenshots/mylibrary.png) | ![AI 표지](./docs/screenshots/ai.png) | ![도서 추천](./docs/screenshots/recommend.png)
-
-<!--
-이미지 추가 방법:
-1. docs/screenshots/ 폴더 생성
-2. 캡처 이미지를 home.png, book-detail.png 등으로 저장
-3. 필요에 따라 표/행을 추가하거나 삭제
--->
+- AWS EC2 기반 웹 애플리케이션 배포
+- AWS CodeBuild를 활용한 Frontend / Backend 자동 빌드
+- AWS CodeDeploy를 활용한 배포 자동화
+- Nginx를 통한 Frontend 정적 파일 서비스
+- Spring Boot Backend 실행 자동화
+- 기존 **H2 Database → AWS RDS MySQL** 전환
+- 환경변수를 활용한 개발 / 배포 환경 분리
+- CI/CD 흐름 이해 및 실제 배포 경험
 
 ---
 
-## 🛠 기술 스택
+## 🔄 CI/CD Flow
 
-### Backend
-- **Java 17**, **Spring Boot 4.0.6**
-- Spring Data JPA, Spring Validation, Spring Web MVC
-- **H2 Database** (파일 기반)
-- Lombok, Spring Security Crypto (비밀번호 암호화)
-- Gradle
-
-### Frontend
-- **React 19**, **Vite 6**
-- React Router DOM 7
-- Plain CSS (디자인 시스템 / CSS 변수 기반 테마)
-
-### External
-- **OpenAI Image Generation API** (AI 표지 생성)
-
----
-
-## 📁 프로젝트 구조
-
-```
-bookapp/
-├── bookapp/                # 백엔드 (Spring Boot)
-│   └── src/main/java/com/aivle/bookapp/
-│       ├── controller/     # REST 컨트롤러
-│       ├── service/        # 비즈니스 로직
-│       ├── repository/     # JPA 리포지토리
-│       ├── entity/         # JPA 엔티티
-│       ├── dto/            # 요청/응답 DTO
-│       ├── config/         # CORS, 비밀번호 설정
-│       └── exception/      # 전역 예외 처리
-│
-├── frontend/               # 프론트엔드 (React + Vite)
-│   └── src/
-│       ├── api/            # API 호출 모듈 (apiFetch 래퍼)
-│       ├── components/     # 재사용 컴포넌트
-│       ├── context/        # 전역 상태 (Auth, ReadingGoal)
-│       ├── pages/          # 페이지 컴포넌트
-│       ├── styles/         # CSS
-│       └── constants.js    # 공용 상수
-│
-└── docs/                   # 문서
-    ├── API.md              # API 명세서
-    └── schema.dbml         # ER 다이어그램 (dbdiagram.io)
+```text
+Source Code
+    │
+    ▼
+AWS CI/CD
+    │
+    ▼
+CodeBuild
+ ├─ React Frontend Build
+ └─ Spring Boot Backend Build
+    │
+    ▼
+Deployment Artifact
+    │
+    ▼
+CodeDeploy
+    │
+    ▼
+EC2
+ ├─ Nginx
+ │   └─ Frontend
+ │
+ └─ Spring Boot
+     └─ Backend
+          │
+          ▼
+      AWS RDS
+        MySQL
 ```
 
 ---
 
-## 🚀 실행 방법
+## ☁️ AWS Deployment
 
-### 사전 요구사항
-- JDK 17+
-- Node.js 18+
+### Build
 
-### 1. 백엔드 실행
-```bash
-cd bookapp
-./gradlew bootRun        # Windows: gradlew.bat bootRun
-```
-- 서버: `http://localhost:8080`
-- H2 콘솔: `http://localhost:8080/h2-console`
-  - JDBC URL: `jdbc:h2:file:./bookapp-data`, 사용자: `sa`, 비밀번호: (없음)
+`buildspec.yml`을 통해 CI 환경에서 Frontend와 Backend를 함께 빌드합니다.
 
-### 2. 프론트엔드 실행
-```bash
-cd frontend
+```text
+Frontend
+React / Vite
+    ↓
 npm install
-npm run dev
+npm run build
+    ↓
+frontend/dist
 ```
-- 개발 서버: `http://localhost:5173`
 
-> 백엔드가 `localhost:5173`, `5174`, `3000` Origin에 대해 CORS를 허용하도록 설정되어 있습니다.
+```text
+Backend
+Spring Boot / Gradle
+    ↓
+./gradlew clean bootJar
+    ↓
+bookapp-0.0.1-SNAPSHOT.jar
+```
 
----
-
-## 🔑 AI 표지 생성 사용법
-
-AI 표지 생성 기능은 **사용자 본인의 OpenAI API 키**를 사용합니다.
-1. [OpenAI Platform](https://platform.openai.com/api-keys)에서 API 키 발급
-2. 도서 등록 / 표지 생성 화면에서 키 입력 (브라우저 localStorage에 저장)
-3. "AI 표지 생성하기" 클릭 → 3가지 디자인 시안 생성
-
----
-
-## 📖 문서
-
-- **[API 명세서](./docs/API.md)** — 전체 REST 엔드포인트, 요청/응답 형식
-- **[ER 다이어그램 (DBML)](./docs/schema.dbml)** — [dbdiagram.io](https://dbdiagram.io)에 붙여넣어 시각화
+생성된 Frontend 빌드 결과와 Backend JAR 파일은 배포 Artifact로 구성됩니다.
 
 ---
 
-## 🗄 데이터 모델 (요약)
+### Deploy
 
-| 엔티티 | 설명 |
-| --- | --- |
-| `User` | 회원 계정 (이메일/사용자명/닉네임, 서재 공개 여부) |
-| `Book` | 도서 (소유자, 독서 상태, 책장, 분위기 태그, 소프트 삭제) |
-| `Bookshelf` | 사용자 커스텀 책장 |
-| `Review` / `Highlight` | 리뷰(별점·태그) / 인상 깊은 문장 |
-| `Follow` | 팔로우 관계 (자기참조) |
-| `Feed` / `FeedComment` / `FeedLike` | 활동 피드 및 상호작용 |
-| `BookLike` | 도서 좋아요 |
+`appspec.yml`과 배포 Shell Script를 이용하여 EC2에 자동 배포합니다.
 
-> 인증은 JWT 없이 로그인 후 클라이언트가 `userId`를 보관하는 방식입니다.
+```text
+CodeDeploy
+    │
+    ├─ BeforeInstall
+    │    └─ 기존 배포 파일 정리
+    │
+    ├─ AfterInstall
+    │    └─ Nginx 설정
+    │
+    └─ ApplicationStart
+         └─ Spring Boot Backend 실행
+```
+
+Frontend 빌드 파일은 Nginx가 서비스하고,  
+Backend는 EC2에서 Spring Boot 애플리케이션으로 실행됩니다.
 
 ---
+
+## 🗄 Database Migration
+
+### Before
+
+```text
+Spring Boot
+    │
+    ▼
+H2 Database
+```
+
+로컬 개발 환경에서는 H2 Database를 사용했습니다.
+
+### After
+
+```text
+Spring Boot on EC2
+    │
+    ▼
+AWS RDS
+    │
+    ▼
+MySQL
+```
+
+6차 미니프로젝트에서는 실제 배포 환경을 구성하면서  
+기존 H2 기반 Database를 **AWS RDS MySQL**로 전환했습니다.
+
+배포 환경에서는 DB 접속 정보를 환경변수로 관리하여  
+로컬 환경과 AWS 환경을 분리했습니다.
+
+```text
+DB_ENGINE
+DB_HOST
+DB_PORT
+DB_NAME
+DB_USERNAME
+DB_PASSWORD
+```
+
+---
+
+## 🛠 Tech Stack
+
+### Application
+
+| Category | Technology |
+|---|---|
+| Frontend | React, Vite |
+| Backend | Java, Spring Boot |
+| ORM | Spring Data JPA |
+| Local DB | H2 |
+| Production DB | MySQL |
+
+### Infrastructure
+
+| Category | Technology |
+|---|---|
+| Cloud | AWS |
+| Compute | EC2 |
+| Database | RDS MySQL |
+| Build | AWS CodeBuild |
+| Deploy | AWS CodeDeploy |
+| Web Server | Nginx |
+| Build Tool | Gradle, npm |
+
+---
+
+## 📁 Deployment Files
+
+```text
+mini-project6/
+│
+├── frontend/               # React Frontend
+├── bookapp/                # Spring Boot Backend
+│
+├── buildspec.yml           # AWS CodeBuild 설정
+├── unit-test-buildspec.yml
+├── appspec.yml             # AWS CodeDeploy 설정
+│
+├── scripts/                # EC2 배포 Script
+└── deploy-scripts/         # Deployment Script
+```
+
+---
+
+
+
+## 📝 Repository Note
+
+본 저장소의 애플리케이션 소스 코드는  
+**5차 미니프로젝트 결과물을 6차 미니프로젝트의 배포 대상으로 활용한 것**입니다.
+
+따라서 `책담(Chaekdam)`의 서비스 기능 자체보다는  
+6차 미니프로젝트에서 수행한 **AWS 배포, CI/CD 구성, 서버 환경 설정 및 RDS MySQL 전환 과정**을 중심으로 기록합니다.
+
+또한 6차 미니프로젝트는 로컬 환경 중심으로 실습한 뒤 최종 제출 버전을 저장하는 방식으로 진행되어,  
+현재 GitHub Commit History가 팀원별 전체 개발 과정을 나타내지는 않습니다.
+
+이 저장소는 **6차 미니프로젝트 최종 제출 및 AWS 배포 실습 결과를 보존하기 위한 Repository**입니다.
